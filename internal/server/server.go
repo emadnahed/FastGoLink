@@ -78,8 +78,8 @@ func (s *Server) handleGetURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	shortCode := extractShortCode(r.URL.Path, "/api/v1/urls/")
-	if shortCode == "" {
-		http.Error(w, "short code required", http.StatusBadRequest)
+	if shortCode == "" || strings.Contains(shortCode, "/") {
+		http.Error(w, "invalid short code format", http.StatusBadRequest)
 		return
 	}
 	s.urlHandler.GetURL(w, r, shortCode)
@@ -92,8 +92,8 @@ func (s *Server) handleDeleteURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	shortCode := extractShortCode(r.URL.Path, "/api/v1/urls/")
-	if shortCode == "" {
-		http.Error(w, "short code required", http.StatusBadRequest)
+	if shortCode == "" || strings.Contains(shortCode, "/") {
+		http.Error(w, "invalid short code format", http.StatusBadRequest)
 		return
 	}
 	s.urlHandler.DeleteURL(w, r, shortCode)

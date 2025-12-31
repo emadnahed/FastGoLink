@@ -225,16 +225,6 @@ func TestURLHandler_Shorten(t *testing.T) {
 				assert.Equal(t, "RETRY_EXCEEDED", resp.Code)
 			},
 		},
-		{
-			name:           "GET returns 405 Method Not Allowed",
-			method:         http.MethodGet,
-			body:           nil,
-			setupMock:      func(svc *MockURLService) {},
-			expectedStatus: http.StatusMethodNotAllowed,
-			checkResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
-				assert.Equal(t, "POST", rec.Header().Get("Allow"))
-			},
-		},
 	}
 
 	for _, tt := range tests {

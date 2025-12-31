@@ -53,16 +53,6 @@ func NewURLHandler(svc services.URLService) *URLHandler {
 
 // Shorten handles POST /api/v1/shorten requests.
 func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
-	// Check method
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", "POST")
-		writeJSON(w, http.StatusMethodNotAllowed, ErrorResponse{
-			Error: "method not allowed",
-			Code:  "METHOD_NOT_ALLOWED",
-		})
-		return
-	}
-
 	// Parse request body
 	var req ShortenRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

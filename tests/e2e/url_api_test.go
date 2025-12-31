@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"sync"
 	"testing"
@@ -45,7 +46,7 @@ func (r *InMemoryURLRepository) Create(ctx context.Context, create *models.URLCr
 
 	// Check for duplicate
 	if _, exists := r.urls[create.ShortCode]; exists {
-		return nil, models.ErrURLNotFound // Should be a duplicate error
+		return nil, errors.New("duplicate short code")
 	}
 
 	r.seq++

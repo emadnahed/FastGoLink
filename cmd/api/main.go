@@ -139,7 +139,7 @@ func run() error {
 
 		// Create ID generator with collision detection
 		baseGen := idgen.NewRandomGenerator(cfg.URL.ShortCodeLen)
-		collisionGen := idgen.NewCollisionAwareGenerator(baseGen, urlRepo, 3)
+		collisionGen := idgen.NewCollisionAwareGenerator(baseGen, urlRepo, cfg.URL.IDGenMaxRetries)
 
 		// Create URL service and handler
 		urlService := services.NewURLService(urlRepo, collisionGen, cfg.URL.BaseURL)
