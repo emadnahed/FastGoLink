@@ -35,6 +35,9 @@ type URLRepository interface {
 
 	// Exists checks if a short code already exists.
 	Exists(ctx context.Context, shortCode string) (bool, error)
+
+	// HealthCheck verifies the repository is healthy.
+	HealthCheck(ctx context.Context) error
 }
 
 // PostgresURLRepository implements URLRepository using PostgreSQL.
@@ -187,6 +190,11 @@ func (r *PostgresURLRepository) Exists(ctx context.Context, shortCode string) (b
 	}
 
 	return exists, nil
+}
+
+// HealthCheck verifies the database connection is healthy.
+func (r *PostgresURLRepository) HealthCheck(ctx context.Context) error {
+	return r.pool.HealthCheck(ctx)
 }
 
 // isDuplicateKeyError checks if the error is a duplicate key violation.

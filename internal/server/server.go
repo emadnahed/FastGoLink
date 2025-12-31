@@ -10,6 +10,7 @@ import (
 
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/handlers"
+	"github.com/gourl/gourl/internal/repository"
 	"github.com/gourl/gourl/pkg/logger"
 )
 
@@ -19,6 +20,7 @@ type Server struct {
 	log           *logger.Logger
 	httpServer    *http.Server
 	healthHandler *handlers.HealthHandler
+	urlRepo       repository.URLRepository
 	listener      net.Listener
 	running       bool
 	mu            sync.RWMutex
@@ -124,4 +126,14 @@ func (s *Server) Addr() string {
 // HealthHandler returns the health handler.
 func (s *Server) HealthHandler() *handlers.HealthHandler {
 	return s.healthHandler
+}
+
+// SetURLRepository sets the URL repository for the server.
+func (s *Server) SetURLRepository(repo repository.URLRepository) {
+	s.urlRepo = repo
+}
+
+// URLRepository returns the URL repository.
+func (s *Server) URLRepository() repository.URLRepository {
+	return s.urlRepo
 }
