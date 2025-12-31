@@ -1,0 +1,41 @@
+# GoURL Configuration (YAML)
+# Copy this file to config.yaml and fill in your values
+
+app:
+  env: development
+  log_level: debug
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 5s
+  write_timeout: 10s
+  shutdown_timeout: 30s
+
+database:
+  host: localhost
+  port: 5432
+  user: gourl
+  password: your_secure_password_here
+  dbname: gourl
+  sslmode: disable
+  max_open_conns: 25
+  max_idle_conns: 5
+  conn_max_lifetime: 5m
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 10
+
+url:
+  base_url: "http://localhost:8080"
+  short_code_length: 7
+  default_expiry: 0s
+  id_gen_strategy: base62
+
+rate_limit:
+  requests: 100
+  window: 1m
