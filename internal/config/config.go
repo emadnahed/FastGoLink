@@ -74,10 +74,11 @@ type RedisConfig struct {
 
 // URLConfig holds URL shortener specific configuration.
 type URLConfig struct {
-	BaseURL       string
-	ShortCodeLen  int
-	DefaultExpiry time.Duration
-	IDGenStrategy string
+	BaseURL         string
+	ShortCodeLen    int
+	DefaultExpiry   time.Duration
+	IDGenStrategy   string
+	IDGenMaxRetries int
 }
 
 // RateLimitConfig holds rate limiting configuration.
@@ -175,6 +176,20 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid REDIS_CACHE_TTL: %w", err)
 	}
 	cfg.Redis.CacheTTL = redisCacheTTL
+
+	// URL config
+	cfg.URL.BaseURL = getEnvOrDefault("URL_BASE_URL", "http://localhost:8080")
+	shortCodeLen, err := getEnvAsInt("URL_SHORT_CODE_LEN", 7)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL_SHORT_CODE_LEN: %w", err)
+	}
+	cfg.URL.ShortCodeLen = shortCodeLen
+	cfg.URL.IDGenStrategy = getEnvOrDefault("URL_IDGEN_STRATEGY", "random")
+	idGenMaxRetries, err := getEnvAsInt("URL_IDGEN_MAX_RETRIES", 3)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL_IDGEN_MAX_RETRIES: %w", err)
+	}
+	cfg.URL.IDGenMaxRetries = idGenMaxRetries
 
 	return cfg, nil
 }
