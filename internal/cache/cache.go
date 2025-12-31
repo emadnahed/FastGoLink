@@ -116,6 +116,20 @@ func (c *RedisCache) Client() *redis.Client {
 	return c.client
 }
 
+// URLCacher defines the interface for URL caching operations.
+// This interface enables easy mocking in tests.
+type URLCacher interface {
+	Get(ctx context.Context, shortCode string) (*CachedURL, error)
+	Set(ctx context.Context, url *CachedURL) error
+	SetWithTTL(ctx context.Context, url *CachedURL, ttl time.Duration) error
+	Delete(ctx context.Context, shortCode string) error
+	Exists(ctx context.Context, shortCode string) (bool, error)
+	Ping(ctx context.Context) error
+}
+
+// Ensure URLCache implements URLCacher
+var _ URLCacher = (*URLCache)(nil)
+
 // URLCache provides URL-specific caching operations.
 type URLCache struct {
 	cache      Cache
@@ -139,10 +153,14 @@ func NewURLCache(cache Cache, keyPrefix string, defaultTTL time.Duration) *URLCa
 }
 
 // CachedURL represents a URL stored in cache.
+// Contains all fields from models.URL for complete data on cache hit.
 type CachedURL struct {
+	ID          int64      `json:"id"`
 	ShortCode   string     `json:"short_code"`
 	OriginalURL string     `json:"original_url"`
+	CreatedAt   time.Time  `json:"created_at"`
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
+	ClickCount  int64      `json:"click_count"`
 }
 
 // Get retrieves a URL from cache by short code.

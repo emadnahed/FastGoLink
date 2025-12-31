@@ -12,12 +12,12 @@ import (
 // It implements write-through caching with fallback to database on cache miss.
 type CachedURLRepository struct {
 	repo     URLRepository
-	cache    *cache.URLCache
+	cache    cache.URLCacher
 	cacheTTL time.Duration
 }
 
 // NewCachedURLRepository creates a new cached URL repository.
-func NewCachedURLRepository(repo URLRepository, urlCache *cache.URLCache, cacheTTL time.Duration) *CachedURLRepository {
+func NewCachedURLRepository(repo URLRepository, urlCache cache.URLCacher, cacheTTL time.Duration) *CachedURLRepository {
 	if cacheTTL == 0 {
 		cacheTTL = 24 * time.Hour
 	}
@@ -76,10 +76,15 @@ func (c *CachedURLRepository) Delete(ctx context.Context, shortCode string) erro
 	return c.repo.Delete(ctx, shortCode)
 }
 
-// IncrementClickCount increments the click count in the database.
-// We don't cache click counts as they change frequently.
+// IncrementClickCount increments the click count in the database
+// and invalidates the cache to avoid serving stale data.
 func (c *CachedURLRepository) IncrementClickCount(ctx context.Context, shortCode string) error {
-	return c.repo.IncrementClickCount(ctx, shortCode)
+	if err := c.repo.IncrementClickCount(ctx, shortCode); err != nil {
+		return err
+	}
+	// Invalidate cache to avoid serving stale click counts
+	_ = c.cache.Delete(ctx, shortCode)
+	return nil
 }
 
 // DeleteExpired removes expired URLs from database and doesn't touch cache
@@ -111,22 +116,28 @@ func (c *CachedURLRepository) HealthCheck(ctx context.Context) error {
 	return c.repo.HealthCheck(ctx)
 }
 
-// cacheURL stores a URL in the cache.
+// cacheURL stores a URL in the cache with all fields.
 func (c *CachedURLRepository) cacheURL(ctx context.Context, url *models.URL) error {
 	cached := &cache.CachedURL{
+		ID:          url.ID,
 		ShortCode:   url.ShortCode,
 		OriginalURL: url.OriginalURL,
+		CreatedAt:   url.CreatedAt,
 		ExpiresAt:   url.ExpiresAt,
+		ClickCount:  url.ClickCount,
 	}
 	return c.cache.SetWithTTL(ctx, cached, c.cacheTTL)
 }
 
 // cachedToURL converts a CachedURL to a URL model.
-// Note: Some fields like ID, CreatedAt, ClickCount are not cached.
+// All fields are now fully populated from the cache.
 func (c *CachedURLRepository) cachedToURL(cached *cache.CachedURL) *models.URL {
 	return &models.URL{
+		ID:          cached.ID,
 		ShortCode:   cached.ShortCode,
 		OriginalURL: cached.OriginalURL,
+		CreatedAt:   cached.CreatedAt,
 		ExpiresAt:   cached.ExpiresAt,
+		ClickCount:  cached.ClickCount,
 	}
 }

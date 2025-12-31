@@ -63,11 +63,13 @@ type DatabaseConfig struct {
 
 // RedisConfig holds Redis connection configuration.
 type RedisConfig struct {
-	Host     string
-	Port     int
-	Password string
-	DB       int
-	PoolSize int
+	Host      string
+	Port      int
+	Password  string
+	DB        int
+	PoolSize  int
+	KeyPrefix string
+	CacheTTL  time.Duration
 }
 
 // URLConfig holds URL shortener specific configuration.
@@ -167,6 +169,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid REDIS_POOL_SIZE: %w", err)
 	}
 	cfg.Redis.PoolSize = redisPoolSize
+	cfg.Redis.KeyPrefix = getEnvOrDefault("REDIS_KEY_PREFIX", "url:")
+	redisCacheTTL, err := getEnvAsDuration("REDIS_CACHE_TTL", 24*time.Hour)
+	if err != nil {
+		return nil, fmt.Errorf("invalid REDIS_CACHE_TTL: %w", err)
+	}
+	cfg.Redis.CacheTTL = redisCacheTTL
 
 	return cfg, nil
 }

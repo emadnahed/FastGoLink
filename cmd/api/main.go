@@ -11,6 +11,7 @@ import (
 	"github.com/gourl/gourl/internal/cache"
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/database"
+	"github.com/gourl/gourl/internal/repository"
 	"github.com/gourl/gourl/internal/server"
 	"github.com/gourl/gourl/pkg/logger"
 )
@@ -108,6 +109,30 @@ func run() error {
 		}
 	} else {
 		log.Info("Redis not configured, skipping connection")
+	}
+
+	// Wire up the URL repository chain
+	if dbRouter != nil {
+		// Get the database pool (using shard 0 for single-shard setup)
+		dbPool := dbRouter.GetShard("")
+		baseRepo := repository.NewPostgresURLRepository(dbPool)
+
+		var urlRepo repository.URLRepository
+		if redisCache != nil {
+			// Create cached repository with Redis
+			log.Info("enabling repository caching",
+				"key_prefix", cfg.Redis.KeyPrefix,
+				"cache_ttl", cfg.Redis.CacheTTL.String(),
+			)
+			urlCache := cache.NewURLCache(redisCache, cfg.Redis.KeyPrefix, cfg.Redis.CacheTTL)
+			urlRepo = repository.NewCachedURLRepository(baseRepo, urlCache, cfg.Redis.CacheTTL)
+		} else {
+			// Use base repository without caching
+			urlRepo = baseRepo
+		}
+
+		srv.SetURLRepository(urlRepo)
+		log.Info("URL repository configured")
 	}
 
 	// Handle graceful shutdown
