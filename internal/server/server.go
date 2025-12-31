@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/gourl/gourl/internal/config"
@@ -20,6 +21,7 @@ type Server struct {
 	log           *logger.Logger
 	httpServer    *http.Server
 	healthHandler *handlers.HealthHandler
+	urlHandler    *handlers.URLHandler
 	urlRepo       repository.URLRepository
 	listener      net.Listener
 	running       bool
@@ -50,8 +52,59 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 
 // registerRoutes sets up the HTTP routes.
 func (s *Server) registerRoutes(mux *http.ServeMux) {
+	// Health check routes
 	mux.HandleFunc("/health", s.healthHandler.Health)
 	mux.HandleFunc("/ready", s.healthHandler.Ready)
+
+	// API v1 routes - URL shortening
+	mux.HandleFunc("POST /api/v1/shorten", s.handleShorten)
+	mux.HandleFunc("GET /api/v1/urls/", s.handleGetURL)
+	mux.HandleFunc("DELETE /api/v1/urls/", s.handleDeleteURL)
+}
+
+// handleShorten routes to the URL handler for shortening.
+func (s *Server) handleShorten(w http.ResponseWriter, r *http.Request) {
+	if s.urlHandler == nil {
+		http.Error(w, "URL service not configured", http.StatusServiceUnavailable)
+		return
+	}
+	s.urlHandler.Shorten(w, r)
+}
+
+// handleGetURL routes to the URL handler for getting URL info.
+func (s *Server) handleGetURL(w http.ResponseWriter, r *http.Request) {
+	if s.urlHandler == nil {
+		http.Error(w, "URL service not configured", http.StatusServiceUnavailable)
+		return
+	}
+	shortCode := extractShortCode(r.URL.Path, "/api/v1/urls/")
+	if shortCode == "" {
+		http.Error(w, "short code required", http.StatusBadRequest)
+		return
+	}
+	s.urlHandler.GetURL(w, r, shortCode)
+}
+
+// handleDeleteURL routes to the URL handler for deleting URLs.
+func (s *Server) handleDeleteURL(w http.ResponseWriter, r *http.Request) {
+	if s.urlHandler == nil {
+		http.Error(w, "URL service not configured", http.StatusServiceUnavailable)
+		return
+	}
+	shortCode := extractShortCode(r.URL.Path, "/api/v1/urls/")
+	if shortCode == "" {
+		http.Error(w, "short code required", http.StatusBadRequest)
+		return
+	}
+	s.urlHandler.DeleteURL(w, r, shortCode)
+}
+
+// extractShortCode extracts the short code from the URL path.
+func extractShortCode(path, prefix string) string {
+	if !strings.HasPrefix(path, prefix) {
+		return ""
+	}
+	return strings.TrimPrefix(path, prefix)
 }
 
 // Start starts the HTTP server.
@@ -136,4 +189,14 @@ func (s *Server) SetURLRepository(repo repository.URLRepository) {
 // URLRepository returns the URL repository.
 func (s *Server) URLRepository() repository.URLRepository {
 	return s.urlRepo
+}
+
+// SetURLHandler sets the URL handler for the server.
+func (s *Server) SetURLHandler(h *handlers.URLHandler) {
+	s.urlHandler = h
+}
+
+// URLHandler returns the URL handler.
+func (s *Server) URLHandler() *handlers.URLHandler {
+	return s.urlHandler
 }

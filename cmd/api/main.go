@@ -11,8 +11,11 @@ import (
 	"github.com/gourl/gourl/internal/cache"
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/database"
+	"github.com/gourl/gourl/internal/handlers"
+	"github.com/gourl/gourl/internal/idgen"
 	"github.com/gourl/gourl/internal/repository"
 	"github.com/gourl/gourl/internal/server"
+	"github.com/gourl/gourl/internal/services"
 	"github.com/gourl/gourl/pkg/logger"
 )
 
@@ -133,6 +136,19 @@ func run() error {
 
 		srv.SetURLRepository(urlRepo)
 		log.Info("URL repository configured")
+
+		// Create ID generator with collision detection
+		baseGen := idgen.NewRandomGenerator(cfg.URL.ShortCodeLen)
+		collisionGen := idgen.NewCollisionAwareGenerator(baseGen, urlRepo, 3)
+
+		// Create URL service and handler
+		urlService := services.NewURLService(urlRepo, collisionGen, cfg.URL.BaseURL)
+		urlHandler := handlers.NewURLHandler(urlService)
+		srv.SetURLHandler(urlHandler)
+		log.Info("URL shortening API configured",
+			"base_url", cfg.URL.BaseURL,
+			"code_length", cfg.URL.ShortCodeLen,
+		)
 	}
 
 	// Handle graceful shutdown
