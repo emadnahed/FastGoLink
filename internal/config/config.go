@@ -149,12 +149,36 @@ func Load() (*Config, error) {
 	}
 	cfg.Database.ConnMaxLifetime = connMaxLifetime
 
+	// Redis config
+	cfg.Redis.Host = getEnvOrDefault("REDIS_HOST", "localhost")
+	redisPort, err := getEnvAsInt("REDIS_PORT", 6379)
+	if err != nil {
+		return nil, fmt.Errorf("invalid REDIS_PORT: %w", err)
+	}
+	cfg.Redis.Port = redisPort
+	cfg.Redis.Password = getEnvOrDefault("REDIS_PASSWORD", "")
+	redisDB, err := getEnvAsInt("REDIS_DB", 0)
+	if err != nil {
+		return nil, fmt.Errorf("invalid REDIS_DB: %w", err)
+	}
+	cfg.Redis.DB = redisDB
+	redisPoolSize, err := getEnvAsInt("REDIS_POOL_SIZE", 10)
+	if err != nil {
+		return nil, fmt.Errorf("invalid REDIS_POOL_SIZE: %w", err)
+	}
+	cfg.Redis.PoolSize = redisPoolSize
+
 	return cfg, nil
 }
 
 // DatabaseEnabled returns true if database configuration is provided.
 func (c *Config) DatabaseEnabled() bool {
 	return c.Database.Host != "" && c.Database.Password != ""
+}
+
+// RedisEnabled returns true if Redis configuration is provided.
+func (c *Config) RedisEnabled() bool {
+	return c.Redis.Host != ""
 }
 
 // getEnvOrDefault returns the environment variable value or a default.
