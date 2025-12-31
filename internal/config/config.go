@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type Config struct {
 	Redis    RedisConfig
 	URL      URLConfig
 	Rate     RateLimitConfig
+	Security SecurityConfig
 }
 
 // AppConfig holds application-level configuration.
@@ -83,8 +85,34 @@ type URLConfig struct {
 
 // RateLimitConfig holds rate limiting configuration.
 type RateLimitConfig struct {
-	Requests int
-	Window   time.Duration
+	Enabled      bool          // Whether rate limiting is enabled
+	Requests     int           // Max requests per window
+	Window       time.Duration // Time window
+	TrustProxy   bool          // Trust X-Forwarded-For header
+	APIKeyHeader string        // Header name for API key (e.g., "X-API-Key")
+}
+
+// SecurityConfig holds security configuration.
+type SecurityConfig struct {
+	MaxURLLength    int    // Maximum allowed URL length (default: 2048)
+	AllowPrivateIPs bool   // Allow private IPs as redirect targets (default: false)
+	BlockedHosts    string // Comma-separated list of blocked hostnames
+}
+
+// BlockedHostsList returns the blocked hosts as a slice.
+func (s SecurityConfig) BlockedHostsList() []string {
+	if s.BlockedHosts == "" {
+		return nil
+	}
+	hosts := strings.Split(s.BlockedHosts, ",")
+	result := make([]string, 0, len(hosts))
+	for _, h := range hosts {
+		h = strings.TrimSpace(h)
+		if h != "" {
+			result = append(result, h)
+		}
+	}
+	return result
 }
 
 // Load reads configuration from environment variables.
@@ -190,6 +218,30 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid URL_IDGEN_MAX_RETRIES: %w", err)
 	}
 	cfg.URL.IDGenMaxRetries = idGenMaxRetries
+
+	// Rate limit config
+	cfg.Rate.Enabled = getEnvOrDefault("RATE_LIMIT_ENABLED", "true") == "true"
+	rateLimitRequests, err := getEnvAsInt("RATE_LIMIT_REQUESTS", 100)
+	if err != nil {
+		return nil, fmt.Errorf("invalid RATE_LIMIT_REQUESTS: %w", err)
+	}
+	cfg.Rate.Requests = rateLimitRequests
+	rateLimitWindow, err := getEnvAsDuration("RATE_LIMIT_WINDOW", time.Minute)
+	if err != nil {
+		return nil, fmt.Errorf("invalid RATE_LIMIT_WINDOW: %w", err)
+	}
+	cfg.Rate.Window = rateLimitWindow
+	cfg.Rate.TrustProxy = getEnvOrDefault("RATE_LIMIT_TRUST_PROXY", "false") == "true"
+	cfg.Rate.APIKeyHeader = getEnvOrDefault("RATE_LIMIT_API_KEY_HEADER", "X-API-Key")
+
+	// Security config
+	maxURLLength, err := getEnvAsInt("SECURITY_MAX_URL_LENGTH", 2048)
+	if err != nil {
+		return nil, fmt.Errorf("invalid SECURITY_MAX_URL_LENGTH: %w", err)
+	}
+	cfg.Security.MaxURLLength = maxURLLength
+	cfg.Security.AllowPrivateIPs = getEnvOrDefault("SECURITY_ALLOW_PRIVATE_IPS", "false") == "true"
+	cfg.Security.BlockedHosts = getEnvOrDefault("SECURITY_BLOCKED_HOSTS", "")
 
 	return cfg, nil
 }

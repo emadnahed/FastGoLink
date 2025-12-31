@@ -11,6 +11,8 @@ import (
 
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/handlers"
+	"github.com/gourl/gourl/internal/middleware"
+	"github.com/gourl/gourl/internal/ratelimit"
 	"github.com/gourl/gourl/internal/repository"
 	"github.com/gourl/gourl/pkg/logger"
 )
@@ -24,6 +26,7 @@ type Server struct {
 	urlHandler      *handlers.URLHandler
 	redirectHandler *handlers.RedirectHandler
 	urlRepo         repository.URLRepository
+	rateLimiter     ratelimit.Limiter
 	listener        net.Listener
 	running         bool
 	mu              sync.RWMutex
@@ -41,14 +44,46 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 	mux := http.NewServeMux()
 	s.registerRoutes(mux)
 
+	// Build middleware chain
+	handler := s.buildMiddlewareChain(mux)
+
 	s.httpServer = &http.Server{
 		Addr:         cfg.Server.Address(),
-		Handler:      mux,
+		Handler:      handler,
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 	}
 
 	return s
+}
+
+// buildMiddlewareChain creates the middleware chain for the server.
+func (s *Server) buildMiddlewareChain(handler http.Handler) http.Handler {
+	// Start with request ID middleware (always enabled)
+	chain := middleware.New(
+		middleware.RequestID(),
+		middleware.ClientIP(s.cfg.Rate.TrustProxy, nil),
+	)
+
+	// Add rate limiting if enabled
+	if s.cfg.Rate.Enabled {
+		s.rateLimiter = ratelimit.NewMemoryLimiter(ratelimit.Config{
+			Requests: s.cfg.Rate.Requests,
+			Window:   s.cfg.Rate.Window,
+		})
+
+		chain = chain.Append(middleware.RateLimit(s.rateLimiter, middleware.RateLimitConfig{
+			TrustProxy:   s.cfg.Rate.TrustProxy,
+			APIKeyHeader: s.cfg.Rate.APIKeyHeader,
+		}))
+
+		s.log.Info("rate limiting enabled",
+			"requests", s.cfg.Rate.Requests,
+			"window", s.cfg.Rate.Window.String(),
+		)
+	}
+
+	return chain.Then(handler)
 }
 
 // registerRoutes sets up the HTTP routes.
@@ -164,6 +199,13 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	s.healthHandler.SetReady(false)
 
 	err := s.httpServer.Shutdown(ctx)
+
+	// Close rate limiter if it exists
+	if s.rateLimiter != nil {
+		if closeErr := s.rateLimiter.Close(); closeErr != nil {
+			s.log.Error("failed to close rate limiter", "error", closeErr.Error())
+		}
+	}
 
 	s.mu.Lock()
 	s.running = false

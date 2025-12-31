@@ -169,6 +169,26 @@ func mapErrorToResponse(err error) (int, ErrorResponse) {
 			Error: "service temporarily unavailable",
 			Code:  "RETRY_EXCEEDED",
 		}
+	case errors.Is(err, services.ErrDangerousURL):
+		return http.StatusBadRequest, ErrorResponse{
+			Error: err.Error(),
+			Code:  "DANGEROUS_URL",
+		}
+	case errors.Is(err, services.ErrPrivateIPURL):
+		return http.StatusBadRequest, ErrorResponse{
+			Error: err.Error(),
+			Code:  "PRIVATE_IP_BLOCKED",
+		}
+	case errors.Is(err, services.ErrBlockedHostURL):
+		return http.StatusBadRequest, ErrorResponse{
+			Error: err.Error(),
+			Code:  "BLOCKED_HOST",
+		}
+	case errors.Is(err, services.ErrURLTooLong):
+		return http.StatusBadRequest, ErrorResponse{
+			Error: err.Error(),
+			Code:  "URL_TOO_LONG",
+		}
 	default:
 		return http.StatusInternalServerError, ErrorResponse{
 			Error: "internal server error",
