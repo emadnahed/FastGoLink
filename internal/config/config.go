@@ -52,10 +52,10 @@ type RedisConfig struct {
 
 // URLConfig holds URL shortener specific configuration.
 type URLConfig struct {
-	BaseURL        string
-	ShortCodeLen   int
-	DefaultExpiry  time.Duration
-	IDGenStrategy  string
+	BaseURL       string
+	ShortCodeLen  int
+	DefaultExpiry time.Duration
+	IDGenStrategy string
 }
 
 // RateLimitConfig holds rate limiting configuration.
