@@ -174,6 +174,11 @@ func testServerWithURLAPI(t *testing.T) (*server.Server, string, func()) {
 	urlHandler := handlers.NewURLHandler(urlService)
 	srv.SetURLHandler(urlHandler)
 
+	// Create redirect service and handler
+	redirectService := services.NewRedirectService(repo)
+	redirectHandler := handlers.NewRedirectHandler(redirectService)
+	srv.SetRedirectHandler(redirectHandler)
+
 	// Start server
 	go func() { _ = srv.Start() }()
 
@@ -190,6 +195,27 @@ func testServerWithURLAPI(t *testing.T) (*server.Server, string, func()) {
 	}
 
 	return srv, "http://" + addr, cleanup
+}
+
+// noRedirectClient returns an HTTP client that doesn't follow redirects.
+func noRedirectClient() *http.Client {
+	return &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+}
+
+// httpGetNoRedirect makes a GET request without following redirects.
+func httpGetNoRedirect(t *testing.T, url string) *http.Response {
+	t.Helper()
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	require.NoError(t, err)
+
+	resp, err := noRedirectClient().Do(req)
+	require.NoError(t, err)
+	return resp
 }
 
 // httpPost makes a POST request with JSON body.
@@ -479,5 +505,185 @@ func TestE2E_ConcurrentShortenRequests(t *testing.T) {
 			uniqueCodes[code] = true
 		}
 		assert.Equal(t, numRequests, len(uniqueCodes))
+	})
+}
+
+func TestE2E_Redirect(t *testing.T) {
+	_, baseURL, cleanup := testServerWithURLAPI(t)
+	defer cleanup()
+
+	t.Run("GET /:code redirects to original URL with 302", func(t *testing.T) {
+		// First create a URL
+		reqBody := handlers.ShortenRequest{
+			URL: "https://example.com/redirect-test",
+		}
+		createResp := httpPost(t, baseURL+"/api/v1/shorten", reqBody)
+		require.Equal(t, http.StatusCreated, createResp.StatusCode)
+
+		var shortenResp handlers.ShortenResponse
+		err := json.NewDecoder(createResp.Body).Decode(&shortenResp)
+		createResp.Body.Close()
+		require.NoError(t, err)
+
+		// Now access the redirect endpoint (without following redirect)
+		resp := httpGetNoRedirect(t, baseURL+"/"+shortenResp.ShortCode)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusFound, resp.StatusCode, "should return 302 Found")
+		assert.Equal(t, "https://example.com/redirect-test", resp.Header.Get("Location"))
+	})
+
+	t.Run("GET /:code returns 404 for non-existent code", func(t *testing.T) {
+		resp := httpGetNoRedirect(t, baseURL+"/notexist123")
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("GET /:code returns 410 Gone for expired URL", func(t *testing.T) {
+		// Create a URL with very short expiry
+		reqBody := handlers.ShortenRequest{
+			URL:       "https://example.com/expiring",
+			ExpiresIn: "1ms", // Expires almost immediately
+		}
+		createResp := httpPost(t, baseURL+"/api/v1/shorten", reqBody)
+		require.Equal(t, http.StatusCreated, createResp.StatusCode)
+
+		var shortenResp handlers.ShortenResponse
+		err := json.NewDecoder(createResp.Body).Decode(&shortenResp)
+		createResp.Body.Close()
+		require.NoError(t, err)
+
+		// Wait for expiry
+		time.Sleep(10 * time.Millisecond)
+
+		// Try to redirect
+		resp := httpGetNoRedirect(t, baseURL+"/"+shortenResp.ShortCode)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusGone, resp.StatusCode)
+	})
+
+	t.Run("redirect increments click count", func(t *testing.T) {
+		// Create a URL
+		reqBody := handlers.ShortenRequest{
+			URL: "https://example.com/click-count-test",
+		}
+		createResp := httpPost(t, baseURL+"/api/v1/shorten", reqBody)
+		require.Equal(t, http.StatusCreated, createResp.StatusCode)
+
+		var shortenResp handlers.ShortenResponse
+		err := json.NewDecoder(createResp.Body).Decode(&shortenResp)
+		createResp.Body.Close()
+		require.NoError(t, err)
+
+		// Access redirect multiple times
+		for i := 0; i < 3; i++ {
+			resp := httpGetNoRedirect(t, baseURL+"/"+shortenResp.ShortCode)
+			resp.Body.Close()
+			assert.Equal(t, http.StatusFound, resp.StatusCode)
+		}
+
+		// Check click count
+		infoResp := httpGet(t, baseURL+"/api/v1/urls/"+shortenResp.ShortCode)
+		defer infoResp.Body.Close()
+
+		var urlInfo handlers.URLInfoResponse
+		err = json.NewDecoder(infoResp.Body).Decode(&urlInfo)
+		require.NoError(t, err)
+
+		assert.Equal(t, int64(3), urlInfo.ClickCount)
+	})
+}
+
+func TestE2E_RedirectLatency(t *testing.T) {
+	_, baseURL, cleanup := testServerWithURLAPI(t)
+	defer cleanup()
+
+	t.Run("redirect latency is under 50ms for in-memory lookups", func(t *testing.T) {
+		// Create a URL
+		reqBody := handlers.ShortenRequest{
+			URL: "https://example.com/latency-test",
+		}
+		createResp := httpPost(t, baseURL+"/api/v1/shorten", reqBody)
+		require.Equal(t, http.StatusCreated, createResp.StatusCode)
+
+		var shortenResp handlers.ShortenResponse
+		err := json.NewDecoder(createResp.Body).Decode(&shortenResp)
+		createResp.Body.Close()
+		require.NoError(t, err)
+
+		// Warm up the connection pool
+		warmupResp := httpGetNoRedirect(t, baseURL+"/"+shortenResp.ShortCode)
+		warmupResp.Body.Close()
+
+		// Measure latency for multiple requests
+		const numRequests = 10
+		var totalLatency time.Duration
+
+		for i := 0; i < numRequests; i++ {
+			start := time.Now()
+			resp := httpGetNoRedirect(t, baseURL+"/"+shortenResp.ShortCode)
+			latency := time.Since(start)
+			resp.Body.Close()
+
+			assert.Equal(t, http.StatusFound, resp.StatusCode)
+			totalLatency += latency
+		}
+
+		avgLatency := totalLatency / numRequests
+		t.Logf("Average redirect latency: %v", avgLatency)
+
+		// For in-memory repository, latency should be well under 50ms
+		// (accounting for test environment variability)
+		assert.Less(t, avgLatency, 50*time.Millisecond,
+			"average redirect latency should be under 50ms for in-memory lookups")
+	})
+}
+
+func TestE2E_RedirectFullFlow(t *testing.T) {
+	_, baseURL, cleanup := testServerWithURLAPI(t)
+	defer cleanup()
+
+	t.Run("complete redirect flow: create -> redirect -> verify click count -> delete", func(t *testing.T) {
+		originalURL := "https://example.com/full-flow-test"
+
+		// Step 1: Create short URL
+		reqBody := handlers.ShortenRequest{
+			URL: originalURL,
+		}
+		createResp := httpPost(t, baseURL+"/api/v1/shorten", reqBody)
+		require.Equal(t, http.StatusCreated, createResp.StatusCode)
+
+		var shortenResp handlers.ShortenResponse
+		err := json.NewDecoder(createResp.Body).Decode(&shortenResp)
+		createResp.Body.Close()
+		require.NoError(t, err)
+
+		shortCode := shortenResp.ShortCode
+
+		// Step 2: Verify redirect works
+		redirectResp := httpGetNoRedirect(t, baseURL+"/"+shortCode)
+		assert.Equal(t, http.StatusFound, redirectResp.StatusCode)
+		assert.Equal(t, originalURL, redirectResp.Header.Get("Location"))
+		redirectResp.Body.Close()
+
+		// Step 3: Verify click count increased
+		infoResp := httpGet(t, baseURL+"/api/v1/urls/"+shortCode)
+		var urlInfo handlers.URLInfoResponse
+		err = json.NewDecoder(infoResp.Body).Decode(&urlInfo)
+		infoResp.Body.Close()
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), urlInfo.ClickCount)
+
+		// Step 4: Delete URL
+		deleteResp := httpDelete(t, baseURL+"/api/v1/urls/"+shortCode)
+		deleteResp.Body.Close()
+		assert.Equal(t, http.StatusNoContent, deleteResp.StatusCode)
+
+		// Step 5: Verify redirect no longer works
+		finalResp := httpGetNoRedirect(t, baseURL+"/"+shortCode)
+		defer finalResp.Body.Close()
+		assert.Equal(t, http.StatusNotFound, finalResp.StatusCode)
 	})
 }

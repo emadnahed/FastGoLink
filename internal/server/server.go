@@ -17,15 +17,16 @@ import (
 
 // Server represents the HTTP server.
 type Server struct {
-	cfg           *config.Config
-	log           *logger.Logger
-	httpServer    *http.Server
-	healthHandler *handlers.HealthHandler
-	urlHandler    *handlers.URLHandler
-	urlRepo       repository.URLRepository
-	listener      net.Listener
-	running       bool
-	mu            sync.RWMutex
+	cfg             *config.Config
+	log             *logger.Logger
+	httpServer      *http.Server
+	healthHandler   *handlers.HealthHandler
+	urlHandler      *handlers.URLHandler
+	redirectHandler *handlers.RedirectHandler
+	urlRepo         repository.URLRepository
+	listener        net.Listener
+	running         bool
+	mu              sync.RWMutex
 }
 
 // New creates a new Server instance.
@@ -52,14 +53,18 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 
 // registerRoutes sets up the HTTP routes.
 func (s *Server) registerRoutes(mux *http.ServeMux) {
-	// Health check routes
-	mux.HandleFunc("/health", s.healthHandler.Health)
-	mux.HandleFunc("/ready", s.healthHandler.Ready)
+	// Health check routes (GET only)
+	mux.HandleFunc("GET /health", s.healthHandler.Health)
+	mux.HandleFunc("GET /ready", s.healthHandler.Ready)
 
 	// API v1 routes - URL shortening
 	mux.HandleFunc("POST /api/v1/shorten", s.handleShorten)
 	mux.HandleFunc("GET /api/v1/urls/", s.handleGetURL)
 	mux.HandleFunc("DELETE /api/v1/urls/", s.handleDeleteURL)
+
+	// Redirect route - GET /{code} for URL redirects
+	// Note: More specific routes like /health, /ready are matched first by Go's ServeMux
+	mux.HandleFunc("GET /{code}", s.handleRedirect)
 }
 
 // handleShorten routes to the URL handler for shortening.
@@ -97,6 +102,20 @@ func (s *Server) handleDeleteURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.urlHandler.DeleteURL(w, r, shortCode)
+}
+
+// handleRedirect routes to the redirect handler for URL redirects.
+func (s *Server) handleRedirect(w http.ResponseWriter, r *http.Request) {
+	if s.redirectHandler == nil {
+		http.Error(w, "Redirect service not configured", http.StatusServiceUnavailable)
+		return
+	}
+	shortCode := r.PathValue("code")
+	if shortCode == "" {
+		http.Error(w, "invalid short code", http.StatusBadRequest)
+		return
+	}
+	s.redirectHandler.Redirect(w, r, shortCode)
 }
 
 // extractShortCode extracts the short code from the URL path.
@@ -199,4 +218,14 @@ func (s *Server) SetURLHandler(h *handlers.URLHandler) {
 // URLHandler returns the URL handler.
 func (s *Server) URLHandler() *handlers.URLHandler {
 	return s.urlHandler
+}
+
+// SetRedirectHandler sets the redirect handler for the server.
+func (s *Server) SetRedirectHandler(h *handlers.RedirectHandler) {
+	s.redirectHandler = h
+}
+
+// RedirectHandler returns the redirect handler.
+func (s *Server) RedirectHandler() *handlers.RedirectHandler {
+	return s.redirectHandler
 }

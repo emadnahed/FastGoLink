@@ -149,6 +149,12 @@ func run() error {
 			"base_url", cfg.URL.BaseURL,
 			"code_length", cfg.URL.ShortCodeLen,
 		)
+
+		// Create redirect service and handler
+		redirectService := services.NewRedirectService(urlRepo)
+		redirectHandler := handlers.NewRedirectHandler(redirectService)
+		srv.SetRedirectHandler(redirectHandler)
+		log.Info("URL redirect handler configured")
 	}
 
 	// Handle graceful shutdown
