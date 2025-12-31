@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/gourl/gourl/internal/config"
+	"github.com/gourl/gourl/internal/database"
 	"github.com/gourl/gourl/internal/server"
 	"github.com/gourl/gourl/pkg/logger"
 )
@@ -38,6 +39,39 @@ func run() error {
 
 	// Create server
 	srv := server.New(cfg, log)
+
+	// Connect to database if configured
+	var dbRouter *database.ShardRouter
+	if cfg.DatabaseEnabled() {
+		log.Info("connecting to database",
+			"host", cfg.Database.Host,
+			"port", cfg.Database.Port,
+			"database", cfg.Database.DBName,
+		)
+
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.Server.ReadTimeout)
+		dbRouter, err = database.SingleShardRouter(ctx, &cfg.Database)
+		cancel()
+
+		if err != nil {
+			log.Warn("database connection failed, continuing without database",
+				"error", err.Error(),
+			)
+		} else {
+			log.Info("database connected successfully")
+
+			// Add database health check
+			srv.HealthHandler().AddCheck("database", func() bool {
+				ctx, cancel := context.WithTimeout(context.Background(), cfg.Server.ReadTimeout)
+				defer cancel()
+				return dbRouter.HealthCheck(ctx) == nil
+			})
+
+			defer dbRouter.Close()
+		}
+	} else {
+		log.Info("database not configured, skipping connection")
+	}
 
 	// Handle graceful shutdown
 	shutdown := make(chan os.Signal, 1)

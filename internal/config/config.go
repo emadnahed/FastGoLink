@@ -119,7 +119,42 @@ func Load() (*Config, error) {
 	}
 	cfg.Server.ShutdownTimeout = shutdownTimeout
 
+	// Database config
+	cfg.Database.Host = getEnvOrDefault("DB_HOST", "localhost")
+	dbPort, err := getEnvAsInt("DB_PORT", 5432)
+	if err != nil {
+		return nil, fmt.Errorf("invalid DB_PORT: %w", err)
+	}
+	cfg.Database.Port = dbPort
+	cfg.Database.User = getEnvOrDefault("DB_USER", "gourl")
+	cfg.Database.Password = getEnvOrDefault("DB_PASSWORD", "")
+	cfg.Database.DBName = getEnvOrDefault("DB_NAME", "gourl")
+	cfg.Database.SSLMode = getEnvOrDefault("DB_SSLMODE", "disable")
+
+	maxOpenConns, err := getEnvAsInt("DB_MAX_OPEN_CONNS", 25)
+	if err != nil {
+		return nil, fmt.Errorf("invalid DB_MAX_OPEN_CONNS: %w", err)
+	}
+	cfg.Database.MaxOpenConns = maxOpenConns
+
+	maxIdleConns, err := getEnvAsInt("DB_MAX_IDLE_CONNS", 5)
+	if err != nil {
+		return nil, fmt.Errorf("invalid DB_MAX_IDLE_CONNS: %w", err)
+	}
+	cfg.Database.MaxIdleConns = maxIdleConns
+
+	connMaxLifetime, err := getEnvAsDuration("DB_CONN_MAX_LIFETIME", 5*time.Minute)
+	if err != nil {
+		return nil, fmt.Errorf("invalid DB_CONN_MAX_LIFETIME: %w", err)
+	}
+	cfg.Database.ConnMaxLifetime = connMaxLifetime
+
 	return cfg, nil
+}
+
+// DatabaseEnabled returns true if database configuration is provided.
+func (c *Config) DatabaseEnabled() bool {
+	return c.Database.Host != "" && c.Database.Password != ""
 }
 
 // getEnvOrDefault returns the environment variable value or a default.
