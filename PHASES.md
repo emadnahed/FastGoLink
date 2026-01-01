@@ -276,16 +276,16 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 10: Observability
+## Phase 10: Observability (COMPLETE)
 
 **Goal**: Production monitoring and debugging
 
 ### Features
-- [ ] Prometheus metrics endpoint
-- [ ] Request latency histograms
-- [ ] Cache hit/miss ratios
-- [ ] Error rate tracking
-- [ ] Structured logging with correlation IDs
+- [x] Prometheus metrics endpoint (`GET /metrics`)
+- [x] Request latency histograms
+- [x] Cache hit/miss ratios
+- [x] Error rate tracking
+- [x] Structured logging with correlation IDs (via X-Request-ID)
 
 ### Metrics
 - `http_requests_total`
@@ -293,6 +293,9 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 - `cache_hits_total` / `cache_misses_total`
 - `db_query_duration_seconds`
 - `active_connections`
+- `urls_created_total`
+- `redirects_total`
+- `rate_limited_total`
 
 ---
 
