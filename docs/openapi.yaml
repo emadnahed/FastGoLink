@@ -1,0 +1,638 @@
+openapi: 3.0.3
+info:
+  title: FastGoLink API
+  description: |
+    **FastGoLink** is a production-grade, high-performance URL shortening service built in Go.
+
+    ## Features
+    - **Ultra-fast redirects**: Cache-first strategy with Redis delivers sub-5ms response times
+    - **Secure URL validation**: Blocks dangerous schemes, private IPs, and configurable blocklists
+    - **Click analytics**: Non-blocking analytics with batch persistence
+    - **Rate limiting**: IP-based and API key-based rate limiting with sliding window
+    - **Health monitoring**: Kubernetes-ready liveness and readiness probes
+    - **Prometheus metrics**: Full observability with request metrics and latency histograms
+
+    ## Architecture
+    ```
+    Client → Load Balancer → Go API Servers → Redis Cache → PostgreSQL
+    ```
+
+    ## Rate Limiting
+    All API endpoints are subject to rate limiting. Rate limit headers are included in responses:
+    - `X-RateLimit-Limit`: Maximum requests per window
+    - `X-RateLimit-Remaining`: Remaining requests in current window
+    - `X-RateLimit-Reset`: Unix timestamp when the window resets
+
+    When rate limited, you'll receive a `429 Too Many Requests` response with a `Retry-After` header.
+
+  version: 1.0.0
+  contact:
+    name: FastGoLink
+    url: https://github.com/emadnahed/FastGoLink
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.fastgolink.com
+    description: Production server
+
+tags:
+  - name: URLs
+    description: URL shortening operations
+  - name: Redirect
+    description: URL redirect (critical path)
+  - name: Analytics
+    description: Click tracking and statistics
+  - name: Health
+    description: Service health and readiness checks
+  - name: Metrics
+    description: Prometheus metrics endpoint
+
+paths:
+  /api/v1/shorten:
+    post:
+      tags:
+        - URLs
+      summary: Create a short URL
+      description: |
+        Creates a new shortened URL from the provided original URL.
+
+        The short code is generated using a cryptographically secure random Base62 encoding.
+        Collision detection is built-in with configurable retry attempts.
+
+        **URL Validation:**
+        - Only `http` and `https` schemes are allowed
+        - Dangerous schemes (javascript:, data:, vbscript:, file:) are blocked
+        - Private IP addresses are blocked by default
+        - Maximum URL length is enforced (default: 2048 characters)
+      operationId: createShortURL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShortenRequest'
+            examples:
+              basic:
+                summary: Basic URL shortening
+                value:
+                  url: "https://example.com/very/long/path?query=value"
+              with_expiry:
+                summary: With expiration
+                value:
+                  url: "https://example.com/temporary-link"
+                  expires_in: "24h"
+      responses:
+        '201':
+          description: Short URL created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenResponse'
+              example:
+                short_url: "http://localhost:8080/abc1234"
+                short_code: "abc1234"
+                original_url: "https://example.com/very/long/path?query=value"
+                created_at: "2024-01-02T10:30:45Z"
+                expires_at: "2024-01-03T10:30:45Z"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_request:
+                  summary: Invalid JSON body
+                  value:
+                    error: "invalid request body"
+                    code: "INVALID_REQUEST"
+                invalid_expires_in:
+                  summary: Invalid duration format
+                  value:
+                    error: "invalid expires_in duration format"
+                    code: "INVALID_EXPIRES_IN"
+                empty_url:
+                  summary: Empty URL
+                  value:
+                    error: "url cannot be empty"
+                    code: "EMPTY_URL"
+                invalid_url:
+                  summary: Invalid URL format
+                  value:
+                    error: "invalid url format"
+                    code: "INVALID_URL"
+                dangerous_url:
+                  summary: Dangerous URL scheme
+                  value:
+                    error: "URL contains dangerous scheme"
+                    code: "DANGEROUS_URL"
+                private_ip:
+                  summary: Private IP blocked
+                  value:
+                    error: "private IP addresses are not allowed"
+                    code: "PRIVATE_IP_BLOCKED"
+                blocked_host:
+                  summary: Blocked host
+                  value:
+                    error: "host is blocked"
+                    code: "BLOCKED_HOST"
+                url_too_long:
+                  summary: URL too long
+                  value:
+                    error: "URL exceeds maximum length"
+                    code: "URL_TOO_LONG"
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Service temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "service temporarily unavailable"
+                code: "RETRY_EXCEEDED"
+
+  /api/v1/urls/{code}:
+    get:
+      tags:
+        - URLs
+      summary: Get URL information
+      description: |
+        Retrieves information about a shortened URL including its original URL,
+        creation time, expiration time, and click count.
+      operationId: getURL
+      parameters:
+        - $ref: '#/components/parameters/ShortCode'
+      responses:
+        '200':
+          description: URL information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/URLInfoResponse'
+              example:
+                short_code: "abc1234"
+                original_url: "https://example.com/very/long/path"
+                created_at: "2024-01-02T10:30:45Z"
+                expires_at: "2024-01-03T10:30:45Z"
+                click_count: 1523
+        '404':
+          description: URL not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "url not found"
+                code: "NOT_FOUND"
+        '410':
+          description: URL has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "url has expired"
+                code: "EXPIRED"
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    delete:
+      tags:
+        - URLs
+      summary: Delete a short URL
+      description: |
+        Permanently deletes a shortened URL. This operation is irreversible.
+        The short code will be available for reuse after deletion.
+      operationId: deleteURL
+      parameters:
+        - $ref: '#/components/parameters/ShortCode'
+      responses:
+        '204':
+          description: URL deleted successfully
+        '404':
+          description: URL not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "url not found"
+                code: "NOT_FOUND"
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /{code}:
+    get:
+      tags:
+        - Redirect
+      summary: Redirect to original URL
+      description: |
+        Redirects the client to the original URL associated with the short code.
+
+        This is the critical path endpoint optimized for minimal latency:
+        - **Cache hit**: 1-5ms response time
+        - **Cache miss**: 10-50ms (database lookup + cache write)
+
+        The redirect uses HTTP 302 (Found) by default. Expired URLs return 410 (Gone).
+
+        **Analytics**: Each redirect is tracked asynchronously and does not block the response.
+      operationId: redirect
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: The short code to redirect
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9]+$'
+            minLength: 1
+            maxLength: 10
+            example: "abc1234"
+      responses:
+        '302':
+          description: Temporary redirect to original URL
+          headers:
+            Location:
+              description: The original URL to redirect to
+              schema:
+                type: string
+                format: uri
+                example: "https://example.com/original-path"
+        '301':
+          description: Permanent redirect (when configured)
+          headers:
+            Location:
+              description: The original URL to redirect to
+              schema:
+                type: string
+                format: uri
+        '404':
+          description: Short code not found
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "URL not found"
+        '410':
+          description: URL has expired
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "URL has expired"
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/v1/analytics/{code}:
+    get:
+      tags:
+        - Analytics
+      summary: Get URL click statistics
+      description: |
+        Retrieves click statistics for a shortened URL.
+
+        The response includes:
+        - `click_count`: Total number of persisted clicks
+        - `pending_count`: Clicks waiting to be flushed to the database
+
+        **Note**: Analytics are processed asynchronously in batches for performance.
+        The `pending_count` represents clicks that have been recorded but not yet
+        persisted to the database (typically flushed every 10 seconds or 100 clicks).
+      operationId: getAnalytics
+      parameters:
+        - $ref: '#/components/parameters/ShortCode'
+      responses:
+        '200':
+          description: Analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/URLStats'
+              example:
+                short_code: "abc1234"
+                click_count: 1523
+                pending_count: 12
+        '404':
+          description: URL not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "URL not found"
+                code: "NOT_FOUND"
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Liveness probe
+      description: |
+        Kubernetes liveness probe endpoint. Returns healthy if the service is running.
+
+        This endpoint should be used for container orchestration liveness checks.
+        It does not verify external dependencies.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "healthy"
+                timestamp: "2024-01-02T10:30:45Z"
+
+  /ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness probe
+      description: |
+        Kubernetes readiness probe endpoint. Returns ready if the service can accept traffic.
+
+        This endpoint verifies all external dependencies:
+        - Database connection
+        - Redis connection (if configured)
+
+        Use this endpoint for load balancer health checks.
+      operationId: readinessCheck
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadyResponse'
+              example:
+                status: "ready"
+                timestamp: "2024-01-02T10:30:45Z"
+                checks:
+                  database: "ok"
+                  redis: "ok"
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadyResponse'
+              example:
+                status: "not ready"
+                timestamp: "2024-01-02T10:30:45Z"
+                checks:
+                  database: "ok"
+                  redis: "fail"
+
+  /metrics:
+    get:
+      tags:
+        - Metrics
+      summary: Prometheus metrics
+      description: |
+        Exposes Prometheus metrics for monitoring and observability.
+
+        **Available Metrics:**
+        - `http_requests_total`: Total HTTP requests by method, path, and status
+        - `http_request_duration_seconds`: Request latency histogram
+        - `cache_hits_total`: Redis cache hit count
+        - `cache_misses_total`: Redis cache miss count
+        - `db_query_duration_seconds`: Database query latency
+        - `rate_limit_hits_total`: Rate limit trigger count
+        - `active_connections`: Current active connections
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Prometheus metrics in text format
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |
+                # HELP http_requests_total Total number of HTTP requests
+                # TYPE http_requests_total counter
+                http_requests_total{method="GET",path="/health",status="200"} 1234
+                http_requests_total{method="POST",path="/api/v1/shorten",status="201"} 567
+
+components:
+  schemas:
+    ShortenRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: The original URL to shorten
+          example: "https://example.com/very/long/path?query=value"
+          maxLength: 2048
+        expires_in:
+          type: string
+          description: |
+            Duration after which the URL expires.
+            Supports Go duration format: "1h", "24h", "7d", "1h30m", etc.
+          example: "24h"
+          pattern: '^[0-9]+(h|m|s|d)+$'
+
+    ShortenResponse:
+      type: object
+      properties:
+        short_url:
+          type: string
+          format: uri
+          description: The complete shortened URL
+          example: "http://localhost:8080/abc1234"
+        short_code:
+          type: string
+          description: The unique short code
+          example: "abc1234"
+          pattern: '^[a-zA-Z0-9]+$'
+        original_url:
+          type: string
+          format: uri
+          description: The original URL
+          example: "https://example.com/very/long/path"
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of creation
+          example: "2024-01-02T10:30:45Z"
+        expires_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of expiration (if set)
+          example: "2024-01-03T10:30:45Z"
+          nullable: true
+
+    URLInfoResponse:
+      type: object
+      properties:
+        short_code:
+          type: string
+          description: The unique short code
+          example: "abc1234"
+        original_url:
+          type: string
+          format: uri
+          description: The original URL
+          example: "https://example.com/very/long/path"
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of creation
+          example: "2024-01-02T10:30:45Z"
+        expires_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of expiration (if set)
+          nullable: true
+        click_count:
+          type: integer
+          format: int64
+          description: Total number of clicks/redirects
+          example: 1523
+
+    URLStats:
+      type: object
+      properties:
+        short_code:
+          type: string
+          description: The unique short code
+          example: "abc1234"
+        click_count:
+          type: integer
+          format: int64
+          description: Total persisted click count
+          example: 1523
+        pending_count:
+          type: integer
+          format: int64
+          description: Clicks pending database flush
+          example: 12
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy]
+          description: Health status
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp
+          example: "2024-01-02T10:30:45Z"
+
+    ReadyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ready, not ready]
+          description: Readiness status
+          example: "ready"
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp
+          example: "2024-01-02T10:30:45Z"
+        checks:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [ok, fail]
+          description: Individual dependency check results
+          example:
+            database: "ok"
+            redis: "ok"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "invalid url format"
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "INVALID_URL"
+          enum:
+            - INVALID_REQUEST
+            - INVALID_EXPIRES_IN
+            - EMPTY_URL
+            - INVALID_URL
+            - INVALID_SHORT_CODE
+            - DANGEROUS_URL
+            - PRIVATE_IP_BLOCKED
+            - BLOCKED_HOST
+            - URL_TOO_LONG
+            - NOT_FOUND
+            - EXPIRED
+            - RETRY_EXCEEDED
+            - RATE_LIMITED
+            - INTERNAL_ERROR
+
+  parameters:
+    ShortCode:
+      name: code
+      in: path
+      required: true
+      description: The unique short code identifier
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9]+$'
+        minLength: 1
+        maxLength: 10
+        example: "abc1234"
+
+  responses:
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          description: Maximum requests per window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Unix timestamp when window resets
+          schema:
+            type: integer
+            example: 1704192000
+        Retry-After:
+          description: Seconds until rate limit resets
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "rate limit exceeded"
+            code: "RATE_LIMITED"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Optional API key for rate limit identification.
+        Requests with API keys may have separate rate limits from IP-based limits.
