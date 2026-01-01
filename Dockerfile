@@ -37,6 +37,9 @@ COPY --from=builder /app/bin/gourl /app/gourl
 # Copy migrations if needed
 COPY --from=builder /app/migrations /app/migrations
 
+# Copy API documentation
+COPY --from=builder /app/docs /app/docs
+
 # Set ownership
 RUN chown -R gourl:gourl /app
 

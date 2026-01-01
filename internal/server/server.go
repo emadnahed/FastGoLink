@@ -27,6 +27,7 @@ type Server struct {
 	urlHandler       *handlers.URLHandler
 	redirectHandler  *handlers.RedirectHandler
 	analyticsHandler *handlers.AnalyticsHandler
+	docsHandler      *handlers.DocsHandler
 	urlRepo          repository.URLRepository
 	rateLimiter      ratelimit.Limiter
 	listener         net.Listener
@@ -40,6 +41,7 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 		cfg:           cfg,
 		log:           log,
 		healthHandler: handlers.NewHealthHandler(),
+		docsHandler:   handlers.NewDocsHandler(cfg.URL.BaseURL, ""),
 	}
 
 	// Create HTTP server
@@ -97,6 +99,13 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 
 	// Metrics endpoint for Prometheus
 	mux.Handle("GET /metrics", metrics.Handler())
+
+	// API Documentation routes (Scalar, ReDoc, Swagger UI)
+	mux.HandleFunc("GET /docs", s.docsHandler.ScalarUI)
+	mux.HandleFunc("GET /docs/", s.docsHandler.ScalarUI)
+	mux.HandleFunc("GET /docs/openapi.yaml", s.docsHandler.OpenAPISpec)
+	mux.HandleFunc("GET /docs/redoc", s.docsHandler.Redoc)
+	mux.HandleFunc("GET /docs/swagger", s.docsHandler.SwaggerUI)
 
 	// API v1 routes - URL shortening
 	mux.HandleFunc("POST /api/v1/shorten", s.handleShorten)
