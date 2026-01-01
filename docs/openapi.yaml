@@ -440,8 +440,8 @@ components:
           description: |
             Duration after which the URL expires.
             Supports Go duration format: "1h", "24h", "7d", "1h30m", etc.
+            Validated server-side using Go's time.ParseDuration.
           example: "24h"
-          pattern: '^[0-9]+(h|m|s|d)+$'
 
     ShortenResponse:
       type: object
@@ -595,6 +595,16 @@ components:
         minLength: 1
         maxLength: 10
         example: "abc1234"
+    ApiKey:
+      name: X-API-Key
+      in: header
+      required: false
+      description: |
+        Optional API key for rate limit identification.
+        Requests with API keys may have separate rate limits from IP-based limits.
+      schema:
+        type: string
+        example: "your-api-key-here"
 
   responses:
     RateLimited:
@@ -628,11 +638,3 @@ components:
             error: "rate limit exceeded"
             code: "RATE_LIMITED"
 
-  securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: X-API-Key
-      description: |
-        Optional API key for rate limit identification.
-        Requests with API keys may have separate rate limits from IP-based limits.

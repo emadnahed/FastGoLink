@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastGoLink API Documentation - ReDoc</title>
+    <meta name="description" content="FastGoLink - High-performance URL shortening service API documentation">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <redoc spec-url='/docs/openapi.yaml'
+           hide-hostname="false"
+           expand-responses="200,201"
+           path-in-middle-panel="true"
+           hide-download-button="false"
+           native-scrollbars="true"
+           theme='{
+               "colors": {
+                   "primary": { "main": "#7c3aed" }
+               },
+               "typography": {
+                   "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+                   "headings": { "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, sans-serif" }
+               },
+               "sidebar": {
+                   "backgroundColor": "#1e1e2e"
+               }
+           }'>
+    </redoc>
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+</body>
+</html>

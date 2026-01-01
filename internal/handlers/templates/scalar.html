@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastGoLink API Documentation</title>
+    <meta name="description" content="FastGoLink - High-performance URL shortening service API documentation">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <script id="api-reference" data-url="/docs/openapi.yaml"></script>
+    <script>
+        var configuration = {
+            theme: 'purple',
+            layout: 'modern',
+            showSidebar: true,
+            searchHotKey: 'k',
+            metaData: {
+                title: 'FastGoLink API',
+                description: 'High-performance URL shortening service',
+                ogDescription: 'Production-grade URL shortening API with Redis caching and PostgreSQL persistence',
+                ogTitle: 'FastGoLink API Documentation',
+                twitterCard: 'summary_large_image'
+            },
+            spec: {
+                url: '/docs/openapi.yaml'
+            },
+            hideModels: false,
+            hideDownloadButton: false,
+            hideDarkModeToggle: false,
+            darkMode: true,
+            forceDarkModeState: 'dark',
+            customCss: `
+                .darklight-reference-promo { display: none !important; }
+                .scalar-app { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+            `
+        }
+
+        document.getElementById('api-reference').dataset.configuration = JSON.stringify(configuration)
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>
