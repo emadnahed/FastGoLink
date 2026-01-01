@@ -41,7 +41,7 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 		cfg:           cfg,
 		log:           log,
 		healthHandler: handlers.NewHealthHandler(),
-		docsHandler:   handlers.NewDocsHandler(cfg.URL.BaseURL, ""),
+		docsHandler:   handlers.NewDocsHandler(cfg.URL.BaseURL, "", log),
 	}
 
 	// Create HTTP server

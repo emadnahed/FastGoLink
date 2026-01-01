@@ -13,7 +13,7 @@ import (
 )
 
 func TestDocsHandler_ScalarUI(t *testing.T) {
-	handler := NewDocsHandler("http://localhost:8080", "")
+	handler := NewDocsHandler("http://localhost:8080", "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/docs", nil)
 	rr := httptest.NewRecorder()
@@ -31,7 +31,7 @@ func TestDocsHandler_ScalarUI(t *testing.T) {
 }
 
 func TestDocsHandler_Redoc(t *testing.T) {
-	handler := NewDocsHandler("http://localhost:8080", "")
+	handler := NewDocsHandler("http://localhost:8080", "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/docs/redoc", nil)
 	rr := httptest.NewRecorder()
@@ -49,7 +49,7 @@ func TestDocsHandler_Redoc(t *testing.T) {
 }
 
 func TestDocsHandler_SwaggerUI(t *testing.T) {
-	handler := NewDocsHandler("http://localhost:8080", "")
+	handler := NewDocsHandler("http://localhost:8080", "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/docs/swagger", nil)
 	rr := httptest.NewRecorder()
@@ -72,7 +72,7 @@ info:
   title: Test API
   version: "1.0.0"`)
 
-	handler := NewDocsHandlerWithSpec("http://localhost:8080", specContent)
+	handler := NewDocsHandlerWithSpec("http://localhost:8080", specContent, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 	rr := httptest.NewRecorder()
@@ -102,7 +102,7 @@ info:
 	err := os.WriteFile(specPath, []byte(specContent), 0644)
 	require.NoError(t, err)
 
-	handler := NewDocsHandler("http://localhost:8080", specPath)
+	handler := NewDocsHandler("http://localhost:8080", specPath, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 	rr := httptest.NewRecorder()
@@ -117,7 +117,7 @@ info:
 }
 
 func TestDocsHandler_OpenAPISpec_FileNotFound(t *testing.T) {
-	handler := NewDocsHandler("http://localhost:8080", "/nonexistent/path/openapi.yaml")
+	handler := NewDocsHandler("http://localhost:8080", "/nonexistent/path/openapi.yaml", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 	rr := httptest.NewRecorder()
@@ -129,17 +129,17 @@ func TestDocsHandler_OpenAPISpec_FileNotFound(t *testing.T) {
 }
 
 func TestNewDocsHandler_DefaultPath(t *testing.T) {
-	handler := NewDocsHandler("http://localhost:8080", "")
+	handler := NewDocsHandler("http://localhost:8080", "", nil)
 	assert.Equal(t, "docs/openapi.yaml", handler.specPath)
 }
 
 func TestNewDocsHandler_CustomPath(t *testing.T) {
-	handler := NewDocsHandler("http://localhost:8080", "/custom/path/api.yaml")
+	handler := NewDocsHandler("http://localhost:8080", "/custom/path/api.yaml", nil)
 	assert.Equal(t, "/custom/path/api.yaml", handler.specPath)
 }
 
 func TestDocsHandler_ScalarUI_ContainsConfiguration(t *testing.T) {
-	handler := NewDocsHandler("http://localhost:8080", "")
+	handler := NewDocsHandler("http://localhost:8080", "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/docs", nil)
 	rr := httptest.NewRecorder()
@@ -156,7 +156,7 @@ func TestDocsHandler_ScalarUI_ContainsConfiguration(t *testing.T) {
 }
 
 func TestDocsHandler_AllEndpoints_SetCorrectHeaders(t *testing.T) {
-	handler := NewDocsHandlerWithSpec("http://localhost:8080", []byte("test"))
+	handler := NewDocsHandlerWithSpec("http://localhost:8080", []byte("test"), nil)
 
 	tests := []struct {
 		name        string

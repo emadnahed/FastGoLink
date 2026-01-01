@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/gourl/gourl/pkg/logger"
 )
 
 //go:embed templates/*.html
@@ -15,25 +17,28 @@ type DocsHandler struct {
 	baseURL     string
 	specPath    string
 	specContent []byte
+	log         *logger.Logger
 }
 
 // NewDocsHandler creates a new DocsHandler.
 // If specPath is empty, it will look for docs/openapi.yaml in the current directory.
-func NewDocsHandler(baseURL string, specPath string) *DocsHandler {
+func NewDocsHandler(baseURL string, specPath string, log *logger.Logger) *DocsHandler {
 	if specPath == "" {
 		specPath = "docs/openapi.yaml"
 	}
 	return &DocsHandler{
 		baseURL:  baseURL,
 		specPath: specPath,
+		log:      log,
 	}
 }
 
 // NewDocsHandlerWithSpec creates a new DocsHandler with an embedded spec.
-func NewDocsHandlerWithSpec(baseURL string, specContent []byte) *DocsHandler {
+func NewDocsHandlerWithSpec(baseURL string, specContent []byte, log *logger.Logger) *DocsHandler {
 	return &DocsHandler{
 		baseURL:     baseURL,
 		specContent: specContent,
+		log:         log,
 	}
 }
 
@@ -41,6 +46,9 @@ func NewDocsHandlerWithSpec(baseURL string, specContent []byte) *DocsHandler {
 func (h *DocsHandler) ScalarUI(w http.ResponseWriter, r *http.Request) {
 	html, err := templatesFS.ReadFile("templates/scalar.html")
 	if err != nil {
+		if h.log != nil {
+			h.log.Error("failed to read scalar template", "error", err)
+		}
 		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
@@ -66,10 +74,16 @@ func (h *DocsHandler) OpenAPISpec(w http.ResponseWriter, r *http.Request) {
 	// Otherwise read from file
 	content, err := os.ReadFile(h.specPath)
 	if err != nil {
+		if h.log != nil {
+			h.log.Warn("failed to read OpenAPI spec, trying alternative path", "path", h.specPath, "error", err)
+		}
+
 		// Try to find the spec relative to the executable
 		execPath, execErr := os.Executable()
 		if execErr != nil {
-			// If we can't find the executable, we can't find the spec relative to it.
+			if h.log != nil {
+				h.log.Error("failed to get executable path", "error", execErr)
+			}
 			http.Error(w, "OpenAPI specification not found", http.StatusNotFound)
 			return
 		}
@@ -78,6 +92,9 @@ func (h *DocsHandler) OpenAPISpec(w http.ResponseWriter, r *http.Request) {
 
 		content, err = os.ReadFile(altPath)
 		if err != nil {
+			if h.log != nil {
+				h.log.Error("failed to read OpenAPI spec from alternative path", "path", altPath, "error", err)
+			}
 			http.Error(w, "OpenAPI specification not found", http.StatusNotFound)
 			return
 		}
@@ -91,6 +108,9 @@ func (h *DocsHandler) OpenAPISpec(w http.ResponseWriter, r *http.Request) {
 func (h *DocsHandler) Redoc(w http.ResponseWriter, r *http.Request) {
 	html, err := templatesFS.ReadFile("templates/redoc.html")
 	if err != nil {
+		if h.log != nil {
+			h.log.Error("failed to read redoc template", "error", err)
+		}
 		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
@@ -104,6 +124,9 @@ func (h *DocsHandler) Redoc(w http.ResponseWriter, r *http.Request) {
 func (h *DocsHandler) SwaggerUI(w http.ResponseWriter, r *http.Request) {
 	html, err := templatesFS.ReadFile("templates/swagger.html")
 	if err != nil {
+		if h.log != nil {
+			h.log.Error("failed to read swagger template", "error", err)
+		}
 		http.Error(w, "Template not found", http.StatusInternalServerError)
 		return
 	}
