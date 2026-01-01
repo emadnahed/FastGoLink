@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gourl/gourl/internal/analytics"
 	"github.com/gourl/gourl/internal/cache"
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/database"
@@ -160,11 +161,26 @@ func run() error {
 			"allow_private_ips", cfg.Security.AllowPrivateIPs,
 		)
 
-		// Create redirect service and handler
-		redirectService := services.NewRedirectService(urlRepo)
+		// Create click analytics counter with async batch processing
+		clickFlusher := analytics.NewRepositoryFlusher(urlRepo, log)
+		clickCounter := analytics.NewClickCounter(analytics.DefaultConfig(), clickFlusher)
+		defer clickCounter.Stop()
+		log.Info("click analytics configured",
+			"flush_interval", analytics.DefaultConfig().FlushInterval.String(),
+			"batch_size", analytics.DefaultConfig().BatchSize,
+		)
+
+		// Create redirect service with analytics
+		redirectService := services.NewRedirectServiceWithAnalytics(urlRepo, clickCounter)
 		redirectHandler := handlers.NewRedirectHandler(redirectService)
 		srv.SetRedirectHandler(redirectHandler)
 		log.Info("URL redirect handler configured")
+
+		// Create analytics service and handler
+		analyticsService := services.NewAnalyticsServiceWithPendingStats(urlRepo, clickCounter)
+		analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
+		srv.SetAnalyticsHandler(analyticsHandler)
+		log.Info("analytics API configured")
 	}
 
 	// Handle graceful shutdown

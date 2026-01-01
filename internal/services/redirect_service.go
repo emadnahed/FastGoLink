@@ -8,6 +8,11 @@ import (
 	"github.com/gourl/gourl/internal/repository"
 )
 
+// ClickRecorder records click events for analytics.
+type ClickRecorder interface {
+	RecordClick(shortCode string)
+}
+
 // RedirectResult represents the result of a redirect lookup.
 type RedirectResult struct {
 	OriginalURL string
@@ -22,7 +27,8 @@ type RedirectService interface {
 
 // RedirectServiceImpl implements RedirectService.
 type RedirectServiceImpl struct {
-	repo repository.URLRepository
+	repo          repository.URLRepository
+	clickRecorder ClickRecorder
 }
 
 // NewRedirectService creates a new RedirectService instance.
@@ -32,8 +38,16 @@ func NewRedirectService(repo repository.URLRepository) *RedirectServiceImpl {
 	}
 }
 
+// NewRedirectServiceWithAnalytics creates a new RedirectService with click analytics.
+func NewRedirectServiceWithAnalytics(repo repository.URLRepository, clickRecorder ClickRecorder) *RedirectServiceImpl {
+	return &RedirectServiceImpl{
+		repo:          repo,
+		clickRecorder: clickRecorder,
+	}
+}
+
 // Redirect looks up a URL by short code and returns the original URL for redirecting.
-// It increments the click count asynchronously (failures are silently ignored to not impact redirect latency).
+// It records click events for analytics (non-blocking to not impact redirect latency).
 func (s *RedirectServiceImpl) Redirect(ctx context.Context, shortCode string) (*RedirectResult, error) {
 	// Look up URL (cache-first via CachedURLRepository)
 	url, err := s.repo.GetByShortCode(ctx, shortCode)
@@ -46,9 +60,13 @@ func (s *RedirectServiceImpl) Redirect(ctx context.Context, shortCode string) (*
 		return nil, models.ErrURLExpired
 	}
 
-	// Increment click count (non-blocking, failures are ignored to not impact redirect latency)
-	// The increment is done in-line but errors are swallowed
-	_ = s.repo.IncrementClickCount(ctx, shortCode)
+	// Record click for analytics (non-blocking)
+	if s.clickRecorder != nil {
+		s.clickRecorder.RecordClick(shortCode)
+	} else {
+		// Fallback: increment directly (swallow errors to not impact latency)
+		_ = s.repo.IncrementClickCount(ctx, shortCode)
+	}
 
 	return &RedirectResult{
 		OriginalURL: url.OriginalURL,

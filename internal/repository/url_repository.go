@@ -30,6 +30,9 @@ type URLRepository interface {
 	// IncrementClickCount increments the click counter for a URL.
 	IncrementClickCount(ctx context.Context, shortCode string) error
 
+	// BatchIncrementClickCounts increments click counts for multiple URLs in a single transaction.
+	BatchIncrementClickCounts(ctx context.Context, counts map[string]int64) error
+
 	// DeleteExpired removes all expired URLs and returns the count.
 	DeleteExpired(ctx context.Context) (int64, error)
 
@@ -162,6 +165,51 @@ func (r *PostgresURLRepository) IncrementClickCount(ctx context.Context, shortCo
 
 	if result.RowsAffected() == 0 {
 		return models.ErrURLNotFound
+	}
+
+	return nil
+}
+
+// BatchIncrementClickCounts increments click counts for multiple URLs in a single batch.
+func (r *PostgresURLRepository) BatchIncrementClickCounts(ctx context.Context, counts map[string]int64) error {
+	if len(counts) == 0 {
+		return nil
+	}
+
+	// Use a single UPDATE with CASE for efficiency
+	// UPDATE urls SET click_count = click_count + CASE
+	//   WHEN short_code = 'abc' THEN 5
+	//   WHEN short_code = 'xyz' THEN 10
+	//   ELSE 0
+	// END
+	// WHERE short_code IN ('abc', 'xyz')
+
+	query := "UPDATE urls SET click_count = click_count + CASE"
+	args := make([]interface{}, 0, len(counts)*2)
+	shortCodes := make([]string, 0, len(counts))
+	argIdx := 1
+
+	for code, count := range counts {
+		query += fmt.Sprintf(" WHEN short_code = $%d THEN $%d", argIdx, argIdx+1)
+		args = append(args, code, count)
+		shortCodes = append(shortCodes, code)
+		argIdx += 2
+	}
+
+	query += " ELSE 0 END WHERE short_code IN ("
+	for i, code := range shortCodes {
+		if i > 0 {
+			query += ", "
+		}
+		query += fmt.Sprintf("$%d", argIdx)
+		args = append(args, code)
+		argIdx++
+	}
+	query += ")"
+
+	_, err := r.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to batch increment click counts: %w", err)
 	}
 
 	return nil

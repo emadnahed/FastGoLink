@@ -53,6 +53,11 @@ func (m *MockURLRepository) IncrementClickCount(ctx context.Context, shortCode s
 	return args.Error(0)
 }
 
+func (m *MockURLRepository) BatchIncrementClickCounts(ctx context.Context, counts map[string]int64) error {
+	args := m.Called(ctx, counts)
+	return args.Error(0)
+}
+
 func (m *MockURLRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(int64), args.Error(1)
