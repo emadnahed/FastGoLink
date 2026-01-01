@@ -16,7 +16,7 @@ type Flusher interface {
 // Config holds configuration for the ClickCounter.
 type Config struct {
 	FlushInterval time.Duration // How often to flush accumulated counts
-	BatchSize     int           // Flush when this many unique codes accumulated
+	BatchSize     int           // Flush when this many clicks accumulated
 	ChannelBuffer int           // Size of the click channel buffer
 }
 

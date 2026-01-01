@@ -42,12 +42,7 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+    # Health check defined in Dockerfile
     networks:
       - gourl-network
     logging:
