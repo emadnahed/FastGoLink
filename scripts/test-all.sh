@@ -25,15 +25,8 @@ COVERAGE_FILE="coverage.out"
 COVERAGE_HTML="coverage.html"
 COVERAGE_THRESHOLD=0  # Set to desired minimum coverage percentage (0 = no threshold)
 
-# Counters
-TOTAL_TESTS=0
-PASSED_TESTS=0
-FAILED_TESTS=0
-SKIPPED_TESTS=0
-
 # Flags
 USE_DOCKER=false
-VERBOSE=false
 SHOW_COVERAGE_HTML=false
 
 # Script directory
@@ -83,7 +76,6 @@ show_help() {
     echo ""
     echo "Options:"
     echo "  --docker      Start Docker services (PostgreSQL, Redis) for full integration tests"
-    echo "  --verbose     Show verbose test output"
     echo "  --open        Open HTML coverage report after tests complete"
     echo "  --help        Show this help message"
     echo ""
@@ -100,10 +92,6 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --docker)
             USE_DOCKER=true
-            shift
-            ;;
-        --verbose)
-            VERBOSE=true
             shift
             ;;
         --open)
@@ -184,41 +172,6 @@ start_docker_services() {
 
     echo ""
     print_success "All Docker services are running"
-}
-
-# Run tests for a specific package/directory
-run_test_suite() {
-    local suite_name=$1
-    local test_path=$2
-    local env_vars=$3
-
-    print_section "Running $suite_name"
-
-    local test_cmd="go test -v -race -count=1"
-
-    if [ -n "$env_vars" ]; then
-        test_cmd="$env_vars $test_cmd"
-    fi
-
-    test_cmd="$test_cmd $test_path"
-
-    print_info "Command: $test_cmd"
-    echo ""
-
-    # Run tests and capture output
-    local start_time=$(date +%s)
-
-    if eval "$test_cmd" 2>&1; then
-        local end_time=$(date +%s)
-        local duration=$((end_time - start_time))
-        print_success "$suite_name completed in ${duration}s"
-        return 0
-    else
-        local end_time=$(date +%s)
-        local duration=$((end_time - start_time))
-        print_error "$suite_name failed after ${duration}s"
-        return 1
-    fi
 }
 
 # Run all tests with coverage

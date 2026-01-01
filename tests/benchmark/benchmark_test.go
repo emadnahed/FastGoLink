@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -593,9 +594,9 @@ func TestConcurrencyStress(t *testing.T) {
 	// Calculate percentiles
 	if len(latencies) > 0 {
 		sortDurations(latencies)
-		p50 := latencies[len(latencies)*50/100]
-		p95 := latencies[len(latencies)*95/100]
-		p99 := latencies[len(latencies)*99/100]
+		p50 := latencies[(len(latencies)*50+99)/100-1]
+		p95 := latencies[(len(latencies)*95+99)/100-1]
+		p99 := latencies[(len(latencies)*99+99)/100-1]
 
 		rps := float64(successCount) / duration.Seconds()
 		avgLatency := time.Duration(totalLatency / successCount)
@@ -704,10 +705,10 @@ func TestLatencyPercentiles(t *testing.T) {
 
 	min := latencies[0]
 	max := latencies[len(latencies)-1]
-	p50 := latencies[len(latencies)*50/100]
-	p90 := latencies[len(latencies)*90/100]
-	p95 := latencies[len(latencies)*95/100]
-	p99 := latencies[len(latencies)*99/100]
+	p50 := latencies[(len(latencies)*50+99)/100-1]
+	p90 := latencies[(len(latencies)*90+99)/100-1]
+	p95 := latencies[(len(latencies)*95+99)/100-1]
+	p99 := latencies[(len(latencies)*99+99)/100-1]
 
 	var total time.Duration
 	for _, l := range latencies {
@@ -799,15 +800,7 @@ func setupStressServer(t *testing.T) (string, func()) {
 	return "http://" + addr, cleanup
 }
 
-// sortDurations sorts a slice of durations in place using insertion sort.
+// sortDurations sorts a slice of durations in place.
 func sortDurations(d []time.Duration) {
-	for i := 1; i < len(d); i++ {
-		key := d[i]
-		j := i - 1
-		for j >= 0 && d[j] > key {
-			d[j+1] = d[j]
-			j--
-		}
-		d[j+1] = key
-	}
+	sort.Slice(d, func(i, j int) bool { return d[i] < d[j] })
 }

@@ -22,7 +22,7 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # Default configuration
-BASE_URL="${1:-http://localhost:8080}"
+BASE_URL="http://localhost:8080"
 MODE="standard"
 CONCURRENCY=50
 REQUESTS=1000
@@ -147,8 +147,8 @@ test_health_latency() {
     local min=${sorted[0]}
     local max=${sorted[$((count-1))]}
     local p50=${sorted[$((count/2))]}
-    local p95=${sorted[$((count*95/100))]}
-    local p99=${sorted[$((count*99/100))]}
+    local p95=${sorted[$(( (count * 95 + 99) / 100 - 1 ))]}
+    local p99=${sorted[$(( (count * 99 + 99) / 100 - 1 ))]}
 
     echo ""
     echo -e "  ${BOLD}Min:${NC}     ${min}ms"
@@ -212,8 +212,8 @@ test_redirect_latency() {
     local min=${sorted[0]}
     local max=${sorted[$((count-1))]}
     local p50=${sorted[$((count/2))]}
-    local p95=${sorted[$((count*95/100))]}
-    local p99=${sorted[$((count*99/100))]}
+    local p95=${sorted[$(( (count * 95 + 99) / 100 - 1 ))]}
+    local p99=${sorted[$(( (count * 99 + 99) / 100 - 1 ))]}
 
     echo ""
     echo -e "  ${BOLD}Min:${NC}     ${min}ms"
@@ -229,8 +229,8 @@ test_redirect_latency() {
         print_error "Redirect P99 latency is high: ${p99}ms"
     fi
 
-    # Store short_code for concurrent tests
-    echo "$short_code"
+    # Store short_code for concurrent tests via global variable
+    REDIRECT_SHORT_CODE="$short_code"
 }
 
 # Test concurrent requests
@@ -274,8 +274,8 @@ test_concurrency() {
     local duration=$(echo "$end_time - $start_time" | bc)
 
     # Count results
-    local success_count=$(wc -l < "$results_file" 2>/dev/null | tr -d ' ')
-    local error_count=$(wc -l < "$errors_file" 2>/dev/null | tr -d ' ')
+    local success_count=$(cat "$results_file" 2>/dev/null | wc -l | tr -d ' ')
+    local error_count=$(cat "$errors_file" 2>/dev/null | wc -l | tr -d ' ')
     local total=$((success_count + error_count))
 
     if [ "$total" -eq 0 ]; then
@@ -294,8 +294,8 @@ test_concurrency() {
             local lat_min=${latencies[0]}
             local lat_max=${latencies[$((lat_count-1))]}
             local lat_p50=${latencies[$((lat_count/2))]}
-            local lat_p95=${latencies[$((lat_count*95/100))]}
-            local lat_p99=${latencies[$((lat_count*99/100))]}
+            local lat_p95=${latencies[$(( (lat_count * 95 + 99) / 100 - 1 ))]}
+            local lat_p99=${latencies[$(( (lat_count * 99 + 99) / 100 - 1 ))]}
 
             local lat_total=0
             for lat in "${latencies[@]}"; do
@@ -389,7 +389,8 @@ main() {
 
     test_health_latency
 
-    local short_code=$(test_redirect_latency | tail -1)
+    test_redirect_latency
+    local short_code="$REDIRECT_SHORT_CODE"
 
     if [ -n "$short_code" ] && [ ${#short_code} -gt 0 ]; then
         test_concurrency "$short_code"
