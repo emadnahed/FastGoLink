@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/gourl/gourl/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/config"
 )
 
 // Pool wraps pgxpool.Pool with additional functionality.

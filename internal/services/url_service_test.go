@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/idgen"
-	"github.com/gourl/gourl/internal/models"
-	"github.com/gourl/gourl/internal/security"
+	"github.com/emadnahed/FastGoLink/internal/idgen"
+	"github.com/emadnahed/FastGoLink/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/security"
 )
 
 // MockURLRepository is a mock implementation of repository.URLRepository.

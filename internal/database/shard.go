@@ -7,7 +7,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/gourl/gourl/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/config"
 )
 
 // ShardConfig represents configuration for a single shard.

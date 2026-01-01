@@ -4,8 +4,8 @@ package services
 import (
 	"context"
 
-	"github.com/gourl/gourl/internal/models"
-	"github.com/gourl/gourl/internal/repository"
+	"github.com/emadnahed/FastGoLink/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/repository"
 )
 
 // ClickRecorder records click events for analytics.

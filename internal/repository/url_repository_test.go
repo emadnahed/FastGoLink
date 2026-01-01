@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/config"
-	"github.com/gourl/gourl/internal/database"
-	"github.com/gourl/gourl/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/database"
+	"github.com/emadnahed/FastGoLink/internal/models"
 )
 
 func skipIfNoPostgres(t *testing.T) {
@@ -32,9 +32,9 @@ func testDBConfig() *config.DatabaseConfig {
 	return &config.DatabaseConfig{
 		Host:            getEnvOrDefault("DB_HOST", "localhost"),
 		Port:            5432,
-		User:            getEnvOrDefault("DB_USER", "gourl"),
-		Password:        getEnvOrDefault("DB_PASSWORD", "gourl_dev_password"),
-		DBName:          getEnvOrDefault("DB_NAME", "gourl"),
+		User:            getEnvOrDefault("DB_USER", "fastgolink"),
+		Password:        getEnvOrDefault("DB_PASSWORD", "fastgolink_dev_password"),
+		DBName:          getEnvOrDefault("DB_NAME", "fastgolink"),
 		SSLMode:         "disable",
 		MaxOpenConns:    10,
 		MaxIdleConns:    5,

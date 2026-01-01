@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: gourl-api
+    container_name: fastgolink-api
     ports:
       - "8080:8080"
     environment:
@@ -13,9 +13,9 @@ services:
       - SERVER_PORT=8080
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_USER=gourl
-      - DB_PASSWORD=gourl_dev_password
-      - DB_NAME=gourl
+      - DB_USER=fastgolink
+      - DB_PASSWORD=fastgolink_dev_password
+      - DB_NAME=fastgolink
       - DB_SSL_MODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -29,32 +29,32 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - gourl-network
+      - fastgolink-network
     restart: unless-stopped
 
   postgres:
     image: postgres:16-alpine
-    container_name: gourl-postgres
+    container_name: fastgolink-postgres
     environment:
-      POSTGRES_USER: gourl
-      POSTGRES_PASSWORD: gourl_dev_password
-      POSTGRES_DB: gourl
+      POSTGRES_USER: fastgolink
+      POSTGRES_PASSWORD: fastgolink_dev_password
+      POSTGRES_DB: fastgolink
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations/001_create_urls_table.up.sql:/docker-entrypoint-initdb.d/001_create_urls_table.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gourl -d gourl"]
+      test: ["CMD-SHELL", "pg_isready -U fastgolink -d fastgolink"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - gourl-network
+      - fastgolink-network
 
   redis:
     image: redis:7-alpine
-    container_name: gourl-redis
+    container_name: fastgolink-redis
     ports:
       - "6379:6379"
     volumes:
@@ -66,12 +66,12 @@ services:
       retries: 5
     command: redis-server --appendonly yes
     networks:
-      - gourl-network
+      - fastgolink-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  gourl-network:
+  fastgolink-network:
     driver: bridge

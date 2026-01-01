@@ -24,7 +24,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/gourl/gourl
+    local-prefixes: github.com/emadnahed/FastGoLink
   misspell:
     locale: US
   gosec:

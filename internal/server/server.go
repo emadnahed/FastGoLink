@@ -9,13 +9,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gourl/gourl/internal/config"
-	"github.com/gourl/gourl/internal/handlers"
-	"github.com/gourl/gourl/internal/metrics"
-	"github.com/gourl/gourl/internal/middleware"
-	"github.com/gourl/gourl/internal/ratelimit"
-	"github.com/gourl/gourl/internal/repository"
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/handlers"
+	"github.com/emadnahed/FastGoLink/internal/metrics"
+	"github.com/emadnahed/FastGoLink/internal/middleware"
+	"github.com/emadnahed/FastGoLink/internal/ratelimit"
+	"github.com/emadnahed/FastGoLink/internal/repository"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 // Server represents the HTTP server.

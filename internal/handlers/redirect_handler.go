@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gourl/gourl/internal/models"
-	"github.com/gourl/gourl/internal/services"
+	"github.com/emadnahed/FastGoLink/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/services"
 )
 
 // RedirectHandler handles URL redirect requests.

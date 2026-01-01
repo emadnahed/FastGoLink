@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gourl/gourl/internal/services"
+	"github.com/emadnahed/FastGoLink/internal/services"
 )
 
 // AnalyticsHandler handles analytics-related HTTP requests.

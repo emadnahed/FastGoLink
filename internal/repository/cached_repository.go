@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/gourl/gourl/internal/cache"
-	"github.com/gourl/gourl/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/cache"
+	"github.com/emadnahed/FastGoLink/internal/models"
 )
 
 // CachedURLRepository wraps a URLRepository with caching.

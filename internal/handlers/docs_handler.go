@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 //go:embed templates/*.html
