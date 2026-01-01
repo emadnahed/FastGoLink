@@ -225,6 +225,74 @@ func TestURLHandler_Shorten(t *testing.T) {
 				assert.Equal(t, "RETRY_EXCEEDED", resp.Code)
 			},
 		},
+		{
+			name:   "dangerous URL returns 400",
+			method: http.MethodPost,
+			body: ShortenRequest{
+				URL: "javascript:alert(1)",
+			},
+			setupMock: func(svc *MockURLService) {
+				svc.On("Create", mock.Anything, mock.Anything).Return(nil, services.ErrDangerousURL)
+			},
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				var resp ErrorResponse
+				err := json.Unmarshal(rec.Body.Bytes(), &resp)
+				require.NoError(t, err)
+				assert.Equal(t, "DANGEROUS_URL", resp.Code)
+			},
+		},
+		{
+			name:   "private IP returns 400",
+			method: http.MethodPost,
+			body: ShortenRequest{
+				URL: "http://192.168.1.1/admin",
+			},
+			setupMock: func(svc *MockURLService) {
+				svc.On("Create", mock.Anything, mock.Anything).Return(nil, services.ErrPrivateIPURL)
+			},
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				var resp ErrorResponse
+				err := json.Unmarshal(rec.Body.Bytes(), &resp)
+				require.NoError(t, err)
+				assert.Equal(t, "PRIVATE_IP_BLOCKED", resp.Code)
+			},
+		},
+		{
+			name:   "blocked host returns 400",
+			method: http.MethodPost,
+			body: ShortenRequest{
+				URL: "https://blocked.com/path",
+			},
+			setupMock: func(svc *MockURLService) {
+				svc.On("Create", mock.Anything, mock.Anything).Return(nil, services.ErrBlockedHostURL)
+			},
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				var resp ErrorResponse
+				err := json.Unmarshal(rec.Body.Bytes(), &resp)
+				require.NoError(t, err)
+				assert.Equal(t, "BLOCKED_HOST", resp.Code)
+			},
+		},
+		{
+			name:   "URL too long returns 400",
+			method: http.MethodPost,
+			body: ShortenRequest{
+				URL: "https://example.com/very-long-path",
+			},
+			setupMock: func(svc *MockURLService) {
+				svc.On("Create", mock.Anything, mock.Anything).Return(nil, services.ErrURLTooLong)
+			},
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				var resp ErrorResponse
+				err := json.Unmarshal(rec.Body.Bytes(), &resp)
+				require.NoError(t, err)
+				assert.Equal(t, "URL_TOO_LONG", resp.Code)
+			},
+		},
 	}
 
 	for _, tt := range tests {

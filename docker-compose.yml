@@ -1,6 +1,37 @@
-version: '3.8'
-
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gourl-api
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_ENV=development
+      - APP_LOG_LEVEL=debug
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=gourl
+      - DB_PASSWORD=gourl_dev_password
+      - DB_NAME=gourl
+      - DB_SSL_MODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - URL_BASE_URL=http://localhost:8080
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW=1m
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gourl-network
+    restart: unless-stopped
+
   postgres:
     image: postgres:16-alpine
     container_name: gourl-postgres
@@ -12,11 +43,14 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./migrations/001_create_urls_table.up.sql:/docker-entrypoint-initdb.d/001_create_urls_table.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gourl -d gourl"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - gourl-network
 
   redis:
     image: redis:7-alpine
@@ -31,7 +65,13 @@ services:
       timeout: 5s
       retries: 5
     command: redis-server --appendonly yes
+    networks:
+      - gourl-network
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  gourl-network:
+    driver: bridge

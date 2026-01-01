@@ -23,16 +23,16 @@ Phase 0 contains zero business logic - only infrastructure.
 
 ---
 
-## Phase 1: Core HTTP Server & Health Checks
+## Phase 1: Core HTTP Server & Health Checks (COMPLETE)
 
 **Goal**: Deployable HTTP server with health endpoints
 
 ### Features
-- [ ] HTTP server with graceful shutdown
-- [ ] Health check endpoint (`GET /health`)
-- [ ] Readiness probe endpoint (`GET /ready`)
-- [ ] Structured JSON logging
-- [ ] Configuration loading from environment
+- [x] HTTP server with graceful shutdown
+- [x] Health check endpoint (`GET /health`)
+- [x] Readiness probe endpoint (`GET /ready`)
+- [x] Structured JSON logging
+- [x] Configuration loading from environment
 
 ### TDD Approach
 1. Write failing tests for health endpoints
@@ -48,15 +48,15 @@ Phase 0 contains zero business logic - only infrastructure.
 
 ---
 
-## Phase 2: Database Layer (PostgreSQL)
+## Phase 2: Database Layer (PostgreSQL) (COMPLETE)
 
 **Goal**: Persistent storage with migrations
 
 ### Features
-- [ ] Database connection pool
-- [ ] Migration system (up/down)
-- [ ] URL model and repository interface
-- [ ] Connection health checks
+- [x] Database connection pool
+- [x] Migration system (up/down)
+- [x] URL model and repository interface
+- [x] Connection health checks
 
 ### Schema
 ```sql
@@ -87,16 +87,16 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 3: Redis Cache Layer
+## Phase 3: Redis Cache Layer (COMPLETE)
 
 **Goal**: High-performance caching for redirects
 
 ### Features
-- [ ] Redis connection pool
-- [ ] Cache interface with TTL support
-- [ ] Write-through caching strategy
-- [ ] Cache invalidation
-- [ ] Fallback to database on cache miss
+- [x] Redis connection pool
+- [x] Cache interface with TTL support
+- [x] Write-through caching strategy
+- [x] Cache invalidation
+- [x] Fallback to database on cache miss
 
 ### TDD Approach
 1. Write failing tests for cache interface
@@ -112,15 +112,15 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 4: ID Generation
+## Phase 4: ID Generation (COMPLETE)
 
 **Goal**: Unique, URL-safe short codes
 
 ### Features
-- [ ] Base62 encoding/decoding
-- [ ] Snowflake-style ID generation (optional)
-- [ ] Collision detection and retry
-- [ ] Configurable code length
+- [x] Base62 encoding/decoding
+- [x] Snowflake-style ID generation
+- [x] Collision detection and retry
+- [x] Configurable code length
 
 ### Strategies
 - **Base62**: Compact alphanumeric codes (a-z, A-Z, 0-9)
@@ -140,7 +140,7 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 5: URL Shortening API
+## Phase 5: URL Shortening API (COMPLETE)
 
 **Goal**: Create short URLs via API
 
@@ -181,7 +181,7 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 6: URL Redirect (Critical Path)
+## Phase 6: URL Redirect (Critical Path) (COMPLETE)
 
 **Goal**: Ultra-fast redirects via short codes
 
@@ -208,48 +208,47 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 7: Rate Limiting & Security
+## Phase 7: Rate Limiting & Security (COMPLETE)
 
 **Goal**: Abuse protection and security hardening
 
 ### Features
-- [ ] IP-based rate limiting
-- [ ] API key rate limiting (optional)
-- [ ] Request validation middleware
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] URL sanitization (prevent XSS, malicious URLs)
-- [ ] Request ID tracking
+- [x] IP-based rate limiting (sliding window algorithm)
+- [x] API key rate limiting (optional via X-API-Key header)
+- [x] Request validation middleware
+- [x] SQL injection prevention (parameterized queries - already in place)
+- [x] URL sanitization (block dangerous schemes, private IPs)
+- [x] Request ID tracking (X-Request-ID header)
 
-### TDD Approach
-1. Write failing tests for rate limiter
-2. Implement sliding window rate limiting
-3. Write failing tests for malicious URLs
-4. Implement URL sanitization
-5. Security-focused tests
+### Implementation Details
+- **Middleware Chain**: RequestID → ClientIP → RateLimit → Handler
+- **Rate Limiter**: In-memory sliding window with configurable requests/window
+- **URL Sanitizer**: Blocks javascript:/data:/vbscript:/file: schemes, localhost, private IPs
+- **Configuration**: Via environment variables (RATE_LIMIT_*, SECURITY_*)
 
 ### Tests Required
 - **Unit**: Rate limit algorithm, URL sanitization
 - **Integration**: Middleware chain
-- **E2E**: Rate limit enforcement
+- **E2E**: Rate limit enforcement, malicious URL blocking
 
 ---
 
-## Phase 8: Click Analytics (Async)
+## Phase 8: Click Analytics (Async) (COMPLETE)
 
 **Goal**: Non-blocking analytics tracking
 
 ### Features
-- [ ] Click count increment
-- [ ] Async processing (goroutine/channel)
-- [ ] Batch updates to reduce DB load
-- [ ] Basic analytics endpoint
+- [x] Click count increment
+- [x] Async processing (goroutine/channel)
+- [x] Batch updates to reduce DB load
+- [x] Basic analytics endpoint (`GET /api/v1/analytics/:code`)
 
-### TDD Approach
-1. Write failing tests for click tracking
-2. Implement async counter
-3. Write failing tests for batch updates
-4. Implement batch processing
-5. Integration tests for accuracy
+### Implementation Details
+- **ClickCounter**: Non-blocking channel-based counter with configurable flush interval and batch size
+- **Batch Updates**: Efficient single SQL UPDATE with CASE statement for multiple URLs
+- **Repository Integration**: `BatchIncrementClickCounts` added to URLRepository interface
+- **Analytics Endpoint**: Returns current click count plus pending (unflushed) clicks
+- **Configuration**: Default 10s flush interval, 100 batch size, 10000 channel buffer
 
 ### Tests Required
 - **Unit**: Counter logic, batch accumulation
@@ -258,16 +257,16 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 9: Docker & Deployment
+## Phase 9: Docker & Deployment (COMPLETE)
 
 **Goal**: Production-ready containerization
 
 ### Deliverables
-- [ ] Multi-stage Dockerfile
-- [ ] docker-compose.yml (dev environment)
-- [ ] docker-compose.prod.yml
-- [ ] Health check scripts
-- [ ] Environment-specific configs
+- [x] Multi-stage Dockerfile
+- [x] docker-compose.yml (dev environment)
+- [x] docker-compose.prod.yml
+- [x] Health check scripts (via Docker HEALTHCHECK)
+- [x] Environment-specific configs
 
 ### TDD Approach
 1. Write container health tests
@@ -277,16 +276,16 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 10: Observability
+## Phase 10: Observability (COMPLETE)
 
 **Goal**: Production monitoring and debugging
 
 ### Features
-- [ ] Prometheus metrics endpoint
-- [ ] Request latency histograms
-- [ ] Cache hit/miss ratios
-- [ ] Error rate tracking
-- [ ] Structured logging with correlation IDs
+- [x] Prometheus metrics endpoint (`GET /metrics`)
+- [x] Request latency histograms
+- [x] Cache hit/miss ratios
+- [x] Error rate tracking
+- [x] Structured logging with correlation IDs (via X-Request-ID)
 
 ### Metrics
 - `http_requests_total`
@@ -294,6 +293,9 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 - `cache_hits_total` / `cache_misses_total`
 - `db_query_duration_seconds`
 - `active_connections`
+- `urls_created_total`
+- `redirects_total`
+- `rate_limited_total`
 
 ---
 

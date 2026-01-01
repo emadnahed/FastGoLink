@@ -12,6 +12,7 @@ import (
 
 	"github.com/gourl/gourl/internal/idgen"
 	"github.com/gourl/gourl/internal/models"
+	"github.com/gourl/gourl/internal/security"
 )
 
 // MockURLRepository is a mock implementation of repository.URLRepository.
@@ -50,6 +51,11 @@ func (m *MockURLRepository) Delete(ctx context.Context, shortCode string) error 
 
 func (m *MockURLRepository) IncrementClickCount(ctx context.Context, shortCode string) error {
 	args := m.Called(ctx, shortCode)
+	return args.Error(0)
+}
+
+func (m *MockURLRepository) BatchIncrementClickCounts(ctx context.Context, counts map[string]int64) error {
+	args := m.Called(ctx, counts)
 	return args.Error(0)
 }
 
@@ -422,4 +428,157 @@ func durationPtr(d time.Duration) *time.Duration {
 
 func timePtr(t time.Time) *time.Time {
 	return &t
+}
+
+func TestNewURLServiceWithSanitizer(t *testing.T) {
+	mockRepo := new(MockURLRepository)
+	mockGen := new(MockGenerator)
+	sanitizer := security.NewSanitizer(security.DefaultConfig())
+
+	svc := NewURLServiceWithSanitizer(mockRepo, mockGen, sanitizer, "http://localhost:8080")
+
+	assert.NotNil(t, svc)
+	assert.NotNil(t, svc.repo)
+	assert.NotNil(t, svc.generator)
+	assert.NotNil(t, svc.sanitizer)
+	assert.Equal(t, "http://localhost:8080", svc.baseURL)
+}
+
+func TestURLService_Create_WithSanitizer(t *testing.T) {
+	ctx := context.Background()
+	baseURL := "http://localhost:8080"
+
+	t.Run("blocks dangerous scheme", func(t *testing.T) {
+		mockRepo := new(MockURLRepository)
+		mockGen := new(MockGenerator)
+		sanitizer := security.NewSanitizer(security.DefaultConfig())
+		svc := NewURLServiceWithSanitizer(mockRepo, mockGen, sanitizer, baseURL)
+
+		resp, err := svc.Create(ctx, CreateURLRequest{
+			OriginalURL: "javascript:alert(1)",
+		})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.ErrorIs(t, err, ErrDangerousURL)
+	})
+
+	t.Run("blocks private IP", func(t *testing.T) {
+		mockRepo := new(MockURLRepository)
+		mockGen := new(MockGenerator)
+		sanitizer := security.NewSanitizer(security.Config{
+			MaxURLLength:    2048,
+			AllowPrivateIPs: false,
+		})
+		svc := NewURLServiceWithSanitizer(mockRepo, mockGen, sanitizer, baseURL)
+
+		resp, err := svc.Create(ctx, CreateURLRequest{
+			OriginalURL: "http://192.168.1.1/admin",
+		})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.ErrorIs(t, err, ErrPrivateIPURL)
+	})
+
+	t.Run("blocks URL too long", func(t *testing.T) {
+		mockRepo := new(MockURLRepository)
+		mockGen := new(MockGenerator)
+		sanitizer := security.NewSanitizer(security.Config{
+			MaxURLLength:    50,
+			AllowPrivateIPs: true,
+		})
+		svc := NewURLServiceWithSanitizer(mockRepo, mockGen, sanitizer, baseURL)
+
+		longURL := "https://example.com/" + string(make([]byte, 100))
+		resp, err := svc.Create(ctx, CreateURLRequest{
+			OriginalURL: longURL,
+		})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.ErrorIs(t, err, ErrURLTooLong)
+	})
+
+	t.Run("blocks blocked host", func(t *testing.T) {
+		mockRepo := new(MockURLRepository)
+		mockGen := new(MockGenerator)
+		sanitizer := security.NewSanitizer(security.Config{
+			MaxURLLength:    2048,
+			AllowPrivateIPs: true,
+			BlockedHosts:    []string{"evil.com"},
+		})
+		svc := NewURLServiceWithSanitizer(mockRepo, mockGen, sanitizer, baseURL)
+
+		resp, err := svc.Create(ctx, CreateURLRequest{
+			OriginalURL: "https://evil.com/malware",
+		})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.ErrorIs(t, err, ErrBlockedHostURL)
+	})
+}
+
+func TestMapSecurityError(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    error
+		expected error
+	}{
+		{
+			name:     "dangerous scheme",
+			input:    security.ErrDangerousScheme,
+			expected: ErrDangerousURL,
+		},
+		{
+			name:     "private IP",
+			input:    security.ErrPrivateIP,
+			expected: ErrPrivateIPURL,
+		},
+		{
+			name:     "blocked host",
+			input:    security.ErrBlockedHost,
+			expected: ErrBlockedHostURL,
+		},
+		{
+			name:     "URL too long",
+			input:    security.ErrURLTooLong,
+			expected: ErrURLTooLong,
+		},
+		{
+			name:     "unknown error",
+			input:    errors.New("unknown error"),
+			expected: models.ErrInvalidURL,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := mapSecurityError(tt.input)
+			assert.ErrorIs(t, result, tt.expected)
+		})
+	}
+}
+
+func TestURLService_Create_WithNilSanitizer(t *testing.T) {
+	ctx := context.Background()
+	baseURL := "http://localhost:8080"
+
+	t.Run("URLCreate validation fails when sanitizer is nil", func(t *testing.T) {
+		mockRepo := new(MockURLRepository)
+		mockGen := new(MockGenerator)
+
+		// Create service with nil sanitizer by using NewURLServiceWithSanitizer
+		svc := NewURLServiceWithSanitizer(mockRepo, mockGen, nil, baseURL)
+
+		// This URL has no scheme, which passes the empty check but fails URLCreate.Validate()
+		resp, err := svc.Create(ctx, CreateURLRequest{
+			OriginalURL: "example.com/path",
+		})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.ErrorIs(t, err, models.ErrInvalidURL)
+	})
 }

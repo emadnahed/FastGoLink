@@ -219,3 +219,356 @@ func TestServer_ShutdownTimeout(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	assert.False(t, srv.IsRunning())
 }
+
+func TestServer_SetterGetters(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+
+	// Test URL handler setter/getter
+	t.Run("URL handler", func(t *testing.T) {
+		assert.Nil(t, srv.URLHandler())
+
+		urlHandler := &handlers.URLHandler{}
+		srv.SetURLHandler(urlHandler)
+
+		assert.Equal(t, urlHandler, srv.URLHandler())
+	})
+
+	// Test redirect handler setter/getter
+	t.Run("redirect handler", func(t *testing.T) {
+		assert.Nil(t, srv.RedirectHandler())
+
+		redirectHandler := &handlers.RedirectHandler{}
+		srv.SetRedirectHandler(redirectHandler)
+
+		assert.Equal(t, redirectHandler, srv.RedirectHandler())
+	})
+
+	// Test analytics handler setter/getter
+	t.Run("analytics handler", func(t *testing.T) {
+		assert.Nil(t, srv.AnalyticsHandler())
+
+		analyticsHandler := &handlers.AnalyticsHandler{}
+		srv.SetAnalyticsHandler(analyticsHandler)
+
+		assert.Equal(t, analyticsHandler, srv.AnalyticsHandler())
+	})
+
+	// Test URL repository setter/getter
+	t.Run("URL repository", func(t *testing.T) {
+		assert.Nil(t, srv.URLRepository())
+
+		// We can test with nil since we're just testing the setter/getter
+		srv.SetURLRepository(nil)
+		assert.Nil(t, srv.URLRepository())
+	})
+}
+
+func TestServer_HandleShorten_NoHandler(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+
+	// Start server (without URL handler set)
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	// Make request to /api/v1/shorten without handler configured
+	ctx := context.Background()
+	body := bytes.NewBufferString(`{"url":"https://example.com"}`)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://"+addr+"/api/v1/shorten", body)
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
+func TestServer_HandleGetURL_NoHandler(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addr+"/api/v1/urls/abc123", nil)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
+func TestServer_HandleDeleteURL_NoHandler(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "http://"+addr+"/api/v1/urls/abc123", nil)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
+func TestServer_HandleRedirect_NoHandler(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addr+"/abc123", nil)
+	require.NoError(t, err)
+
+	// Don't follow redirects
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
+func TestServer_HandleAnalytics_NoHandler(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addr+"/api/v1/analytics/abc123", nil)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
+func TestServer_HandleGetURL_InvalidShortCode(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+	srv.SetURLHandler(&handlers.URLHandler{})
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	tests := []struct {
+		name string
+		path string
+	}{
+		{"empty short code", "/api/v1/urls/"},
+		{"short code with slash", "/api/v1/urls/abc/def"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addr+tt.path, nil)
+			require.NoError(t, err)
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
+}
+
+func TestServer_HandleDeleteURL_InvalidShortCode(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+	srv.SetURLHandler(&handlers.URLHandler{})
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	tests := []struct {
+		name string
+		path string
+	}{
+		{"empty short code", "/api/v1/urls/"},
+		{"short code with slash", "/api/v1/urls/abc/def"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "http://"+addr+tt.path, nil)
+			require.NoError(t, err)
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
+}
+
+func TestServer_HandleAnalytics_InvalidShortCode(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+	srv.SetAnalyticsHandler(&handlers.AnalyticsHandler{})
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	tests := []struct {
+		name string
+		path string
+	}{
+		{"empty short code", "/api/v1/analytics/"},
+		{"short code with slash", "/api/v1/analytics/abc/def"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addr+tt.path, nil)
+			require.NoError(t, err)
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
+}
+
+func TestExtractShortCode(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		prefix   string
+		expected string
+	}{
+		{"valid path", "/api/v1/urls/abc123", "/api/v1/urls/", "abc123"},
+		{"empty after prefix", "/api/v1/urls/", "/api/v1/urls/", ""},
+		{"wrong prefix", "/api/v2/urls/abc123", "/api/v1/urls/", ""},
+		{"no prefix match", "/other/path", "/api/v1/urls/", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := extractShortCode(tt.path, tt.prefix)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestServer_WithRateLimiting(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+	cfg.Rate.Enabled = true
+	cfg.Rate.Requests = 100
+	cfg.Rate.Window = time.Minute
+
+	srv := New(cfg, log)
+
+	go func() { _ = srv.Start() }()
+	defer func() { _ = srv.Shutdown(context.Background()) }()
+	time.Sleep(100 * time.Millisecond)
+
+	addr := srv.Addr()
+
+	// Make a request and check for rate limit headers
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addr+"/health", nil)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	// Rate limit headers should be present
+	assert.NotEmpty(t, resp.Header.Get("X-RateLimit-Limit"))
+	assert.NotEmpty(t, resp.Header.Get("X-RateLimit-Remaining"))
+}
+
+func TestServer_Addr_NotRunning(t *testing.T) {
+	var buf bytes.Buffer
+	log := logger.New(&buf, "error")
+	cfg := testConfig()
+
+	srv := New(cfg, log)
+
+	// Server not started yet, Addr should return empty string
+	assert.Empty(t, srv.Addr())
+}
+

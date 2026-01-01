@@ -8,12 +8,14 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gourl/gourl/internal/analytics"
 	"github.com/gourl/gourl/internal/cache"
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/database"
 	"github.com/gourl/gourl/internal/handlers"
 	"github.com/gourl/gourl/internal/idgen"
 	"github.com/gourl/gourl/internal/repository"
+	"github.com/gourl/gourl/internal/security"
 	"github.com/gourl/gourl/internal/server"
 	"github.com/gourl/gourl/internal/services"
 	"github.com/gourl/gourl/pkg/logger"
@@ -141,20 +143,45 @@ func run() error {
 		baseGen := idgen.NewRandomGenerator(cfg.URL.ShortCodeLen)
 		collisionGen := idgen.NewCollisionAwareGenerator(baseGen, urlRepo, cfg.URL.IDGenMaxRetries)
 
+		// Create URL sanitizer with security config
+		sanitizer := security.NewSanitizer(security.Config{
+			MaxURLLength:    cfg.Security.MaxURLLength,
+			AllowPrivateIPs: cfg.Security.AllowPrivateIPs,
+			BlockedHosts:    cfg.Security.BlockedHostsList(),
+		})
+
 		// Create URL service and handler
-		urlService := services.NewURLService(urlRepo, collisionGen, cfg.URL.BaseURL)
+		urlService := services.NewURLServiceWithSanitizer(urlRepo, collisionGen, sanitizer, cfg.URL.BaseURL)
 		urlHandler := handlers.NewURLHandler(urlService)
 		srv.SetURLHandler(urlHandler)
 		log.Info("URL shortening API configured",
 			"base_url", cfg.URL.BaseURL,
 			"code_length", cfg.URL.ShortCodeLen,
+			"max_url_length", cfg.Security.MaxURLLength,
+			"allow_private_ips", cfg.Security.AllowPrivateIPs,
 		)
 
-		// Create redirect service and handler
-		redirectService := services.NewRedirectService(urlRepo)
+		// Create click analytics counter with async batch processing
+		clickFlusher := analytics.NewRepositoryFlusher(urlRepo, log)
+		clickCounterConfig := analytics.DefaultConfig()
+		clickCounter := analytics.NewClickCounter(clickCounterConfig, clickFlusher)
+		defer clickCounter.Stop()
+		log.Info("click analytics configured",
+			"flush_interval", clickCounterConfig.FlushInterval.String(),
+			"batch_size", clickCounterConfig.BatchSize,
+		)
+
+		// Create redirect service with analytics
+		redirectService := services.NewRedirectServiceWithAnalytics(urlRepo, clickCounter)
 		redirectHandler := handlers.NewRedirectHandler(redirectService)
 		srv.SetRedirectHandler(redirectHandler)
 		log.Info("URL redirect handler configured")
+
+		// Create analytics service and handler
+		analyticsService := services.NewAnalyticsServiceWithPendingStats(urlRepo, clickCounter)
+		analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
+		srv.SetAnalyticsHandler(analyticsHandler)
+		log.Info("analytics API configured")
 	}
 
 	// Handle graceful shutdown

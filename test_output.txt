@@ -1,0 +1,1115 @@
+# github.com/gourl/gourl/internal/middleware.test
+ld: warning: '/private/var/folders/23/p7y1wcs959159d1n4f08hb3w0000gn/T/go-link-382827586/000013.o' has malformed LC_DYSYMTAB, expected 98 undefined symbols to start at index 884, found 95 undefined symbols starting at index 884
+# github.com/gourl/gourl/internal/server.test
+ld: warning: '/private/var/folders/23/p7y1wcs959159d1n4f08hb3w0000gn/T/go-link-3968586730/000013.o' has malformed LC_DYSYMTAB, expected 98 undefined symbols to start at index 884, found 95 undefined symbols starting at index 884
+	github.com/gourl/gourl/cmd/api		coverage: 0.0% of statements
+=== RUN   TestClickCounter_RecordClick
+=== RUN   TestClickCounter_RecordClick/records_clicks_for_short_code
+=== RUN   TestClickCounter_RecordClick/accumulates_clicks_between_flushes
+=== RUN   TestClickCounter_RecordClick/flushes_when_batch_size_reached
+--- PASS: TestClickCounter_RecordClick (0.30s)
+    --- PASS: TestClickCounter_RecordClick/records_clicks_for_short_code (0.10s)
+    --- PASS: TestClickCounter_RecordClick/accumulates_clicks_between_flushes (0.15s)
+    --- PASS: TestClickCounter_RecordClick/flushes_when_batch_size_reached (0.05s)
+=== RUN   TestClickCounter_Stop
+=== RUN   TestClickCounter_Stop/flushes_remaining_clicks_on_stop
+=== RUN   TestClickCounter_Stop/is_safe_to_call_stop_multiple_times
+--- PASS: TestClickCounter_Stop (0.00s)
+    --- PASS: TestClickCounter_Stop/flushes_remaining_clicks_on_stop (0.00s)
+    --- PASS: TestClickCounter_Stop/is_safe_to_call_stop_multiple_times (0.00s)
+=== RUN   TestClickCounter_Concurrency
+=== RUN   TestClickCounter_Concurrency/handles_concurrent_clicks_safely
+--- PASS: TestClickCounter_Concurrency (0.11s)
+    --- PASS: TestClickCounter_Concurrency/handles_concurrent_clicks_safely (0.11s)
+=== RUN   TestClickCounter_NonBlocking
+=== RUN   TestClickCounter_NonBlocking/RecordClick_does_not_block
+--- PASS: TestClickCounter_NonBlocking (0.00s)
+    --- PASS: TestClickCounter_NonBlocking/RecordClick_does_not_block (0.00s)
+=== RUN   TestClickCounter_GetStats
+=== RUN   TestClickCounter_GetStats/returns_in-memory_stats
+--- PASS: TestClickCounter_GetStats (0.01s)
+    --- PASS: TestClickCounter_GetStats/returns_in-memory_stats (0.01s)
+=== RUN   TestDefaultConfig
+--- PASS: TestDefaultConfig (0.00s)
+PASS
+coverage: 77.6% of statements
+ok  	github.com/gourl/gourl/internal/analytics	(cached)	coverage: 77.6% of statements
+=== RUN   TestNewRedisCache
+--- PASS: TestNewRedisCache (0.02s)
+=== RUN   TestNewRedisCache_InvalidHost
+redis: 2026/01/01 20:12:43 pool.go:419: redis: connection pool: failed to dial after 5 attempts: dial tcp: lookup invalid-host-that-does-not-exist: no such host
+--- PASS: TestNewRedisCache_InvalidHost (0.59s)
+=== RUN   TestRedisCache_SetAndGet
+=== RUN   TestRedisCache_SetAndGet/set_and_get_value
+=== RUN   TestRedisCache_SetAndGet/get_non-existent_key
+=== RUN   TestRedisCache_SetAndGet/set_with_TTL_expiry
+--- PASS: TestRedisCache_SetAndGet (0.19s)
+    --- PASS: TestRedisCache_SetAndGet/set_and_get_value (0.01s)
+    --- PASS: TestRedisCache_SetAndGet/get_non-existent_key (0.00s)
+    --- PASS: TestRedisCache_SetAndGet/set_with_TTL_expiry (0.17s)
+=== RUN   TestRedisCache_Delete
+=== RUN   TestRedisCache_Delete/delete_existing_key
+=== RUN   TestRedisCache_Delete/delete_non-existent_key_(no_error)
+--- PASS: TestRedisCache_Delete (0.02s)
+    --- PASS: TestRedisCache_Delete/delete_existing_key (0.00s)
+    --- PASS: TestRedisCache_Delete/delete_non-existent_key_(no_error) (0.00s)
+=== RUN   TestRedisCache_Exists
+=== RUN   TestRedisCache_Exists/exists_returns_true_for_existing_key
+=== RUN   TestRedisCache_Exists/exists_returns_false_for_non-existent_key
+--- PASS: TestRedisCache_Exists (0.04s)
+    --- PASS: TestRedisCache_Exists/exists_returns_true_for_existing_key (0.00s)
+    --- PASS: TestRedisCache_Exists/exists_returns_false_for_non-existent_key (0.00s)
+=== RUN   TestRedisCache_Ping
+--- PASS: TestRedisCache_Ping (0.01s)
+=== RUN   TestNewURLCache
+=== RUN   TestNewURLCache/with_defaults
+=== RUN   TestNewURLCache/with_custom_values
+--- PASS: TestNewURLCache (0.00s)
+    --- PASS: TestNewURLCache/with_defaults (0.00s)
+    --- PASS: TestNewURLCache/with_custom_values (0.00s)
+=== RUN   TestURLCache_SetAndGet
+=== RUN   TestURLCache_SetAndGet/set_and_get_URL
+=== RUN   TestURLCache_SetAndGet/set_and_get_URL_with_expiry
+=== RUN   TestURLCache_SetAndGet/get_non-existent_URL
+=== RUN   TestURLCache_SetAndGet/get_expired_URL_returns_error
+--- PASS: TestURLCache_SetAndGet (0.03s)
+    --- PASS: TestURLCache_SetAndGet/set_and_get_URL (0.00s)
+    --- PASS: TestURLCache_SetAndGet/set_and_get_URL_with_expiry (0.00s)
+    --- PASS: TestURLCache_SetAndGet/get_non-existent_URL (0.00s)
+    --- PASS: TestURLCache_SetAndGet/get_expired_URL_returns_error (0.01s)
+=== RUN   TestURLCache_SetWithTTL
+=== RUN   TestURLCache_SetWithTTL/set_with_custom_TTL
+=== RUN   TestURLCache_SetWithTTL/TTL_capped_to_URL_expiry
+=== RUN   TestURLCache_SetWithTTL/already_expired_URL_not_cached
+--- PASS: TestURLCache_SetWithTTL (0.35s)
+    --- PASS: TestURLCache_SetWithTTL/set_with_custom_TTL (0.17s)
+    --- PASS: TestURLCache_SetWithTTL/TTL_capped_to_URL_expiry (0.16s)
+    --- PASS: TestURLCache_SetWithTTL/already_expired_URL_not_cached (0.00s)
+=== RUN   TestURLCache_Delete
+--- PASS: TestURLCache_Delete (0.01s)
+=== RUN   TestURLCache_Exists
+=== RUN   TestURLCache_Exists/exists_returns_true_for_cached_URL
+=== RUN   TestURLCache_Exists/exists_returns_false_for_non-cached_URL
+--- PASS: TestURLCache_Exists (0.02s)
+    --- PASS: TestURLCache_Exists/exists_returns_true_for_cached_URL (0.00s)
+    --- PASS: TestURLCache_Exists/exists_returns_false_for_non-cached_URL (0.00s)
+=== RUN   TestURLCache_Ping
+--- PASS: TestURLCache_Ping (0.01s)
+PASS
+coverage: 89.5% of statements
+ok  	github.com/gourl/gourl/internal/cache	2.491s	coverage: 89.5% of statements
+=== RUN   TestLoad_Defaults
+--- PASS: TestLoad_Defaults (0.00s)
+=== RUN   TestLoad_ServerConfig
+--- PASS: TestLoad_ServerConfig (0.00s)
+=== RUN   TestLoad_AppConfig
+--- PASS: TestLoad_AppConfig (0.00s)
+=== RUN   TestLoad_InvalidPort
+--- PASS: TestLoad_InvalidPort (0.00s)
+=== RUN   TestLoad_InvalidTimeout
+--- PASS: TestLoad_InvalidTimeout (0.00s)
+=== RUN   TestConfig_Address
+--- PASS: TestConfig_Address (0.00s)
+=== RUN   TestConfig_IsDevelopment
+=== RUN   TestConfig_IsDevelopment/development
+=== RUN   TestConfig_IsDevelopment/dev
+=== RUN   TestConfig_IsDevelopment/production
+=== RUN   TestConfig_IsDevelopment/staging
+--- PASS: TestConfig_IsDevelopment (0.00s)
+    --- PASS: TestConfig_IsDevelopment/development (0.00s)
+    --- PASS: TestConfig_IsDevelopment/dev (0.00s)
+    --- PASS: TestConfig_IsDevelopment/production (0.00s)
+    --- PASS: TestConfig_IsDevelopment/staging (0.00s)
+=== RUN   TestConfig_IsProduction
+=== RUN   TestConfig_IsProduction/production
+=== RUN   TestConfig_IsProduction/prod
+=== RUN   TestConfig_IsProduction/development
+=== RUN   TestConfig_IsProduction/staging
+--- PASS: TestConfig_IsProduction (0.00s)
+    --- PASS: TestConfig_IsProduction/production (0.00s)
+    --- PASS: TestConfig_IsProduction/prod (0.00s)
+    --- PASS: TestConfig_IsProduction/development (0.00s)
+    --- PASS: TestConfig_IsProduction/staging (0.00s)
+PASS
+coverage: 78.2% of statements
+ok  	github.com/gourl/gourl/internal/config	(cached)	coverage: 78.2% of statements
+=== RUN   TestNewPool
+--- PASS: TestNewPool (0.07s)
+=== RUN   TestPool_Ping
+--- PASS: TestPool_Ping (0.10s)
+=== RUN   TestPool_Stats
+--- PASS: TestPool_Stats (0.10s)
+=== RUN   TestPool_Close
+--- PASS: TestPool_Close (0.12s)
+=== RUN   TestNewPool_InvalidConfig
+--- PASS: TestNewPool_InvalidConfig (0.01s)
+=== RUN   TestBuildDSN
+=== RUN   TestBuildDSN/basic_config
+=== RUN   TestBuildDSN/with_pool_settings
+--- PASS: TestBuildDSN (0.00s)
+    --- PASS: TestBuildDSN/basic_config (0.00s)
+    --- PASS: TestBuildDSN/with_pool_settings (0.00s)
+=== RUN   TestMigrator_Up
+--- PASS: TestMigrator_Up (0.34s)
+=== RUN   TestMigrator_Down
+--- PASS: TestMigrator_Down (0.22s)
+=== RUN   TestMigrator_PendingMigrations
+--- PASS: TestMigrator_PendingMigrations (0.19s)
+=== RUN   TestMigrator_AppliedMigrations
+--- PASS: TestMigrator_AppliedMigrations (0.08s)
+=== RUN   TestMigrator_CurrentVersion
+--- PASS: TestMigrator_CurrentVersion (0.09s)
+=== RUN   TestMigration_Transaction
+--- PASS: TestMigration_Transaction (0.12s)
+=== RUN   TestMigrator_EnsureMigrationsTable
+--- PASS: TestMigrator_EnsureMigrationsTable (0.08s)
+=== RUN   TestMigration_TimestampRecording
+--- PASS: TestMigration_TimestampRecording (0.11s)
+=== RUN   TestHashKey
+--- PASS: TestHashKey (0.00s)
+=== RUN   TestHashKey_Consistency
+--- PASS: TestHashKey_Consistency (0.00s)
+=== RUN   TestHashKey_Distribution
+--- PASS: TestHashKey_Distribution (0.02s)
+=== RUN   TestSingleShardRouter
+--- PASS: TestSingleShardRouter (0.05s)
+=== RUN   TestShardRouter_GetShardIndex
+--- PASS: TestShardRouter_GetShardIndex (0.07s)
+=== RUN   TestShardRouter_Deterministic
+--- PASS: TestShardRouter_Deterministic (0.07s)
+=== RUN   TestShardRouter_HealthCheck
+--- PASS: TestShardRouter_HealthCheck (0.07s)
+=== RUN   TestShardRouter_GetAllShards
+--- PASS: TestShardRouter_GetAllShards (0.06s)
+=== RUN   TestShardRouter_Close
+--- PASS: TestShardRouter_Close (0.09s)
+=== RUN   TestNewShardRouter_NoConfigs
+--- PASS: TestNewShardRouter_NoConfigs (0.00s)
+=== RUN   TestNewShardRouter_InvalidConfig
+--- PASS: TestNewShardRouter_InvalidConfig (0.00s)
+=== RUN   TestShardRouter_MultipleShards
+    shard_test.go:227: 
+        	Error Trace:	/Users/emaad/Desktop/FastGoLink/internal/database/shard_test.go:227
+        	Error:      	"87" is not greater than "200"
+        	Test:       	TestShardRouter_MultipleShards
+        	Messages:   	shard 0 should get significant portion
+--- FAIL: TestShardRouter_MultipleShards (0.13s)
+=== RUN   TestShardRouter_ConsistentHashing
+--- PASS: TestShardRouter_ConsistentHashing (0.23s)
+FAIL
+coverage: 69.0% of statements
+FAIL	github.com/gourl/gourl/internal/database	2.615s
+=== RUN   TestHealthHandler
+--- PASS: TestHealthHandler (0.00s)
+=== RUN   TestReadyHandler_Ready
+--- PASS: TestReadyHandler_Ready (0.00s)
+=== RUN   TestReadyHandler_NotReady
+--- PASS: TestReadyHandler_NotReady (0.00s)
+=== RUN   TestHealthHandler_SetReady
+--- PASS: TestHealthHandler_SetReady (0.00s)
+=== RUN   TestHealthResponse_Structure
+--- PASS: TestHealthResponse_Structure (0.00s)
+=== RUN   TestReadyResponse_WithChecks
+--- PASS: TestReadyResponse_WithChecks (0.00s)
+=== RUN   TestReadyResponse_WithFailingCheck
+--- PASS: TestReadyResponse_WithFailingCheck (0.00s)
+=== RUN   TestRedirectHandler_Redirect
+=== RUN   TestRedirectHandler_Redirect/valid_code_redirects_with_302
+=== RUN   TestRedirectHandler_Redirect/permanent_redirect_uses_301
+=== RUN   TestRedirectHandler_Redirect/non-existent_code_returns_404
+=== RUN   TestRedirectHandler_Redirect/expired_code_returns_410_Gone
+=== RUN   TestRedirectHandler_Redirect/service_error_returns_500
+--- PASS: TestRedirectHandler_Redirect (0.01s)
+    --- PASS: TestRedirectHandler_Redirect/valid_code_redirects_with_302 (0.00s)
+    --- PASS: TestRedirectHandler_Redirect/permanent_redirect_uses_301 (0.00s)
+    --- PASS: TestRedirectHandler_Redirect/non-existent_code_returns_404 (0.00s)
+    --- PASS: TestRedirectHandler_Redirect/expired_code_returns_410_Gone (0.00s)
+    --- PASS: TestRedirectHandler_Redirect/service_error_returns_500 (0.00s)
+=== RUN   TestRedirectHandler_LatencyTracking
+--- PASS: TestRedirectHandler_LatencyTracking (0.00s)
+=== RUN   TestURLHandler_Shorten
+=== RUN   TestURLHandler_Shorten/POST_with_valid_URL_returns_201_and_short_URL
+=== RUN   TestURLHandler_Shorten/POST_with_expires_in_creates_expiring_URL
+=== RUN   TestURLHandler_Shorten/POST_with_empty_body_returns_400
+=== RUN   TestURLHandler_Shorten/POST_with_invalid_JSON_returns_400
+=== RUN   TestURLHandler_Shorten/POST_with_empty_URL_returns_400
+=== RUN   TestURLHandler_Shorten/POST_with_invalid_URL_returns_400
+=== RUN   TestURLHandler_Shorten/POST_with_invalid_expires_in_returns_400
+=== RUN   TestURLHandler_Shorten/service_error_returns_500
+=== RUN   TestURLHandler_Shorten/max_retries_exceeded_returns_503
+--- PASS: TestURLHandler_Shorten (0.01s)
+    --- PASS: TestURLHandler_Shorten/POST_with_valid_URL_returns_201_and_short_URL (0.00s)
+    --- PASS: TestURLHandler_Shorten/POST_with_expires_in_creates_expiring_URL (0.00s)
+    --- PASS: TestURLHandler_Shorten/POST_with_empty_body_returns_400 (0.00s)
+    --- PASS: TestURLHandler_Shorten/POST_with_invalid_JSON_returns_400 (0.00s)
+    --- PASS: TestURLHandler_Shorten/POST_with_empty_URL_returns_400 (0.00s)
+    --- PASS: TestURLHandler_Shorten/POST_with_invalid_URL_returns_400 (0.00s)
+    --- PASS: TestURLHandler_Shorten/POST_with_invalid_expires_in_returns_400 (0.00s)
+    --- PASS: TestURLHandler_Shorten/service_error_returns_500 (0.00s)
+    --- PASS: TestURLHandler_Shorten/max_retries_exceeded_returns_503 (0.00s)
+=== RUN   TestURLHandler_GetURL
+=== RUN   TestURLHandler_GetURL/GET_existing_code_returns_200_with_URL_info
+=== RUN   TestURLHandler_GetURL/GET_non-existent_code_returns_404
+=== RUN   TestURLHandler_GetURL/GET_expired_code_returns_410_Gone
+=== RUN   TestURLHandler_GetURL/service_error_returns_500
+--- PASS: TestURLHandler_GetURL (0.00s)
+    --- PASS: TestURLHandler_GetURL/GET_existing_code_returns_200_with_URL_info (0.00s)
+    --- PASS: TestURLHandler_GetURL/GET_non-existent_code_returns_404 (0.00s)
+    --- PASS: TestURLHandler_GetURL/GET_expired_code_returns_410_Gone (0.00s)
+    --- PASS: TestURLHandler_GetURL/service_error_returns_500 (0.00s)
+=== RUN   TestURLHandler_DeleteURL
+=== RUN   TestURLHandler_DeleteURL/DELETE_existing_code_returns_204_No_Content
+=== RUN   TestURLHandler_DeleteURL/DELETE_non-existent_code_returns_404
+=== RUN   TestURLHandler_DeleteURL/service_error_returns_500
+--- PASS: TestURLHandler_DeleteURL (0.00s)
+    --- PASS: TestURLHandler_DeleteURL/DELETE_existing_code_returns_204_No_Content (0.00s)
+    --- PASS: TestURLHandler_DeleteURL/DELETE_non-existent_code_returns_404 (0.00s)
+    --- PASS: TestURLHandler_DeleteURL/service_error_returns_500 (0.00s)
+PASS
+coverage: 87.6% of statements
+ok  	github.com/gourl/gourl/internal/handlers	(cached)	coverage: 87.6% of statements
+=== RUN   TestBase62Encode
+=== RUN   TestBase62Encode/zero
+=== RUN   TestBase62Encode/single_digit
+=== RUN   TestBase62Encode/ten_encodes_to_a
+=== RUN   TestBase62Encode/35_encodes_to_z
+=== RUN   TestBase62Encode/36_encodes_to_A
+=== RUN   TestBase62Encode/61_encodes_to_Z
+=== RUN   TestBase62Encode/62_encodes_to_10
+=== RUN   TestBase62Encode/large_number
+=== RUN   TestBase62Encode/max_uint64
+--- PASS: TestBase62Encode (0.00s)
+    --- PASS: TestBase62Encode/zero (0.00s)
+    --- PASS: TestBase62Encode/single_digit (0.00s)
+    --- PASS: TestBase62Encode/ten_encodes_to_a (0.00s)
+    --- PASS: TestBase62Encode/35_encodes_to_z (0.00s)
+    --- PASS: TestBase62Encode/36_encodes_to_A (0.00s)
+    --- PASS: TestBase62Encode/61_encodes_to_Z (0.00s)
+    --- PASS: TestBase62Encode/62_encodes_to_10 (0.00s)
+    --- PASS: TestBase62Encode/large_number (0.00s)
+    --- PASS: TestBase62Encode/max_uint64 (0.00s)
+=== RUN   TestBase62Decode
+=== RUN   TestBase62Decode/zero
+=== RUN   TestBase62Decode/single_digit
+=== RUN   TestBase62Decode/lowercase_a
+=== RUN   TestBase62Decode/lowercase_z
+=== RUN   TestBase62Decode/uppercase_A
+=== RUN   TestBase62Decode/uppercase_Z
+=== RUN   TestBase62Decode/multi_char
+=== RUN   TestBase62Decode/large_number
+=== RUN   TestBase62Decode/invalid_character_underscore
+=== RUN   TestBase62Decode/invalid_character_hyphen
+=== RUN   TestBase62Decode/empty_string
+--- PASS: TestBase62Decode (0.00s)
+    --- PASS: TestBase62Decode/zero (0.00s)
+    --- PASS: TestBase62Decode/single_digit (0.00s)
+    --- PASS: TestBase62Decode/lowercase_a (0.00s)
+    --- PASS: TestBase62Decode/lowercase_z (0.00s)
+    --- PASS: TestBase62Decode/uppercase_A (0.00s)
+    --- PASS: TestBase62Decode/uppercase_Z (0.00s)
+    --- PASS: TestBase62Decode/multi_char (0.00s)
+    --- PASS: TestBase62Decode/large_number (0.00s)
+    --- PASS: TestBase62Decode/invalid_character_underscore (0.00s)
+    --- PASS: TestBase62Decode/invalid_character_hyphen (0.00s)
+    --- PASS: TestBase62Decode/empty_string (0.00s)
+=== RUN   TestBase62RoundTrip
+--- PASS: TestBase62RoundTrip (0.00s)
+=== RUN   TestBase62EncodeWithPadding
+=== RUN   TestBase62EncodeWithPadding/zero_with_padding_6
+=== RUN   TestBase62EncodeWithPadding/small_number_padded
+=== RUN   TestBase62EncodeWithPadding/no_padding_needed
+=== RUN   TestBase62EncodeWithPadding/minLength_0_returns_normal
+--- PASS: TestBase62EncodeWithPadding (0.00s)
+    --- PASS: TestBase62EncodeWithPadding/zero_with_padding_6 (0.00s)
+    --- PASS: TestBase62EncodeWithPadding/small_number_padded (0.00s)
+    --- PASS: TestBase62EncodeWithPadding/no_padding_needed (0.00s)
+    --- PASS: TestBase62EncodeWithPadding/minLength_0_returns_normal (0.00s)
+=== RUN   TestCollisionAwareGenerator
+=== RUN   TestCollisionAwareGenerator/generates_unique_code_on_first_try_when_no_collision
+=== RUN   TestCollisionAwareGenerator/retries_on_collision_and_succeeds
+=== RUN   TestCollisionAwareGenerator/fails_after_max_retries_exceeded
+=== RUN   TestCollisionAwareGenerator/works_with_snowflake_generator
+=== RUN   TestCollisionAwareGenerator/tracks_collision_statistics
+--- PASS: TestCollisionAwareGenerator (0.00s)
+    --- PASS: TestCollisionAwareGenerator/generates_unique_code_on_first_try_when_no_collision (0.00s)
+    --- PASS: TestCollisionAwareGenerator/retries_on_collision_and_succeeds (0.00s)
+    --- PASS: TestCollisionAwareGenerator/fails_after_max_retries_exceeded (0.00s)
+    --- PASS: TestCollisionAwareGenerator/works_with_snowflake_generator (0.00s)
+    --- PASS: TestCollisionAwareGenerator/tracks_collision_statistics (0.00s)
+=== RUN   TestCollisionAwareGenerator_Concurrent
+--- PASS: TestCollisionAwareGenerator_Concurrent (0.09s)
+=== RUN   TestCollisionAwareGenerator_WithContext
+=== RUN   TestCollisionAwareGenerator_WithContext/respects_context_cancellation
+--- PASS: TestCollisionAwareGenerator_WithContext (0.00s)
+    --- PASS: TestCollisionAwareGenerator_WithContext/respects_context_cancellation (0.00s)
+=== RUN   TestRandomGenerator_Generate
+=== RUN   TestRandomGenerator_Generate/generates_code_of_correct_length
+=== RUN   TestRandomGenerator_Generate/generates_valid_base62_codes
+=== RUN   TestRandomGenerator_Generate/generates_unique_codes
+=== RUN   TestRandomGenerator_Generate/concurrent_generation_is_safe
+--- PASS: TestRandomGenerator_Generate (0.57s)
+    --- PASS: TestRandomGenerator_Generate/generates_code_of_correct_length (0.00s)
+    --- PASS: TestRandomGenerator_Generate/generates_valid_base62_codes (0.00s)
+    --- PASS: TestRandomGenerator_Generate/generates_unique_codes (0.39s)
+    --- PASS: TestRandomGenerator_Generate/concurrent_generation_is_safe (0.18s)
+=== RUN   TestRandomGenerator_WithLength
+=== RUN   TestRandomGenerator_WithLength/minimum_length_4
+=== RUN   TestRandomGenerator_WithLength/default_length_7
+=== RUN   TestRandomGenerator_WithLength/longer_length_10
+--- PASS: TestRandomGenerator_WithLength (0.00s)
+    --- PASS: TestRandomGenerator_WithLength/minimum_length_4 (0.00s)
+    --- PASS: TestRandomGenerator_WithLength/default_length_7 (0.00s)
+    --- PASS: TestRandomGenerator_WithLength/longer_length_10 (0.00s)
+=== RUN   TestDefaultGenerator
+--- PASS: TestDefaultGenerator (0.00s)
+=== RUN   TestGeneratorInterface
+--- PASS: TestGeneratorInterface (0.00s)
+=== RUN   TestNewSnowflakeGenerator
+=== RUN   TestNewSnowflakeGenerator/valid_node_ID_0
+=== RUN   TestNewSnowflakeGenerator/valid_node_ID_max_(1023)
+=== RUN   TestNewSnowflakeGenerator/invalid_node_ID_negative
+=== RUN   TestNewSnowflakeGenerator/invalid_node_ID_too_large
+=== RUN   TestNewSnowflakeGenerator/default_min_length_on_invalid
+--- PASS: TestNewSnowflakeGenerator (0.00s)
+    --- PASS: TestNewSnowflakeGenerator/valid_node_ID_0 (0.00s)
+    --- PASS: TestNewSnowflakeGenerator/valid_node_ID_max_(1023) (0.00s)
+    --- PASS: TestNewSnowflakeGenerator/invalid_node_ID_negative (0.00s)
+    --- PASS: TestNewSnowflakeGenerator/invalid_node_ID_too_large (0.00s)
+    --- PASS: TestNewSnowflakeGenerator/default_min_length_on_invalid (0.00s)
+=== RUN   TestSnowflakeGenerator_Generate
+=== RUN   TestSnowflakeGenerator_Generate/generates_valid_base62_codes
+=== RUN   TestSnowflakeGenerator_Generate/generates_codes_at_least_minLength
+=== RUN   TestSnowflakeGenerator_Generate/generates_monotonically_increasing_IDs
+=== RUN   TestSnowflakeGenerator_Generate/generates_unique_codes
+=== RUN   TestSnowflakeGenerator_Generate/concurrent_generation_produces_unique_codes
+--- PASS: TestSnowflakeGenerator_Generate (0.50s)
+    --- PASS: TestSnowflakeGenerator_Generate/generates_valid_base62_codes (0.00s)
+    --- PASS: TestSnowflakeGenerator_Generate/generates_codes_at_least_minLength (0.00s)
+    --- PASS: TestSnowflakeGenerator_Generate/generates_monotonically_increasing_IDs (0.04s)
+    --- PASS: TestSnowflakeGenerator_Generate/generates_unique_codes (0.21s)
+    --- PASS: TestSnowflakeGenerator_Generate/concurrent_generation_produces_unique_codes (0.25s)
+=== RUN   TestSnowflakeGenerator_DifferentNodes
+--- PASS: TestSnowflakeGenerator_DifferentNodes (0.04s)
+PASS
+coverage: 84.9% of statements
+ok  	github.com/gourl/gourl/internal/idgen	(cached)	coverage: 84.9% of statements
+	github.com/gourl/gourl/internal/metrics		coverage: 0.0% of statements
+=== RUN   TestChain_Then
+=== RUN   TestChain_Then/empty_chain_passes_through_to_handler
+=== RUN   TestChain_Then/single_middleware_wraps_handler
+=== RUN   TestChain_Then/multiple_middlewares_execute_in_order
+=== RUN   TestChain_Then/middleware_can_short-circuit
+--- PASS: TestChain_Then (0.00s)
+    --- PASS: TestChain_Then/empty_chain_passes_through_to_handler (0.00s)
+    --- PASS: TestChain_Then/single_middleware_wraps_handler (0.00s)
+    --- PASS: TestChain_Then/multiple_middlewares_execute_in_order (0.00s)
+    --- PASS: TestChain_Then/middleware_can_short-circuit (0.00s)
+=== RUN   TestChain_ThenFunc
+=== RUN   TestChain_ThenFunc/wraps_handler_function
+--- PASS: TestChain_ThenFunc (0.00s)
+    --- PASS: TestChain_ThenFunc/wraps_handler_function (0.00s)
+=== RUN   TestChain_Append
+=== RUN   TestChain_Append/appends_middleware_to_chain
+=== RUN   TestChain_Append/does_not_modify_original_chain
+--- PASS: TestChain_Append (0.00s)
+    --- PASS: TestChain_Append/appends_middleware_to_chain (0.00s)
+    --- PASS: TestChain_Append/does_not_modify_original_chain (0.00s)
+=== RUN   TestChain_Extend
+=== RUN   TestChain_Extend/extends_chain_with_multiple_middlewares
+--- PASS: TestChain_Extend (0.00s)
+    --- PASS: TestChain_Extend/extends_chain_with_multiple_middlewares (0.00s)
+=== RUN   TestRateLimit
+=== RUN   TestRateLimit/allows_request_when_under_limit
+=== RUN   TestRateLimit/returns_429_when_over_limit
+=== RUN   TestRateLimit/uses_IP_from_context_when_available
+=== RUN   TestRateLimit/uses_API_key_when_provided
+=== RUN   TestRateLimit/falls_back_to_IP_when_API_key_not_provided
+=== RUN   TestRateLimit/uses_X-Forwarded-For_when_trusted
+=== RUN   TestRateLimit/ignores_X-Forwarded-For_when_not_trusted
+=== RUN   TestRateLimit/handles_limiter_error
+=== RUN   TestRateLimit/sets_correct_headers_on_rate_limited_response
+--- PASS: TestRateLimit (0.00s)
+    --- PASS: TestRateLimit/allows_request_when_under_limit (0.00s)
+    --- PASS: TestRateLimit/returns_429_when_over_limit (0.00s)
+    --- PASS: TestRateLimit/uses_IP_from_context_when_available (0.00s)
+    --- PASS: TestRateLimit/uses_API_key_when_provided (0.00s)
+    --- PASS: TestRateLimit/falls_back_to_IP_when_API_key_not_provided (0.00s)
+    --- PASS: TestRateLimit/uses_X-Forwarded-For_when_trusted (0.00s)
+    --- PASS: TestRateLimit/ignores_X-Forwarded-For_when_not_trusted (0.00s)
+    --- PASS: TestRateLimit/handles_limiter_error (0.00s)
+    --- PASS: TestRateLimit/sets_correct_headers_on_rate_limited_response (0.00s)
+=== RUN   TestRequestID
+=== RUN   TestRequestID/generates_ID_when_none_provided
+=== RUN   TestRequestID/uses_provided_valid_ID
+=== RUN   TestRequestID/generates_new_ID_for_invalid_format
+=== RUN   TestRequestID/generates_new_ID_for_empty_header_value
+=== RUN   TestRequestID/generates_new_ID_for_too_long_value
+=== RUN   TestRequestID/accepts_custom_request_ID_format
+--- PASS: TestRequestID (0.00s)
+    --- PASS: TestRequestID/generates_ID_when_none_provided (0.00s)
+    --- PASS: TestRequestID/uses_provided_valid_ID (0.00s)
+    --- PASS: TestRequestID/generates_new_ID_for_invalid_format (0.00s)
+    --- PASS: TestRequestID/generates_new_ID_for_empty_header_value (0.00s)
+    --- PASS: TestRequestID/generates_new_ID_for_too_long_value (0.00s)
+    --- PASS: TestRequestID/accepts_custom_request_ID_format (0.00s)
+=== RUN   TestClientIP
+=== RUN   TestClientIP/extracts_IP_from_RemoteAddr
+=== RUN   TestClientIP/extracts_IP_without_port
+=== RUN   TestClientIP/ignores_X-Forwarded-For_when_trust_is_false
+=== RUN   TestClientIP/uses_X-Forwarded-For_when_trusted
+=== RUN   TestClientIP/uses_X-Real-IP_when_trusted_and_X-Forwarded-For_not_present
+=== RUN   TestClientIP/handles_IPv6_addresses
+=== RUN   TestClientIP/only_trusts_specific_proxy_IPs
+--- PASS: TestClientIP (0.00s)
+    --- PASS: TestClientIP/extracts_IP_from_RemoteAddr (0.00s)
+    --- PASS: TestClientIP/extracts_IP_without_port (0.00s)
+    --- PASS: TestClientIP/ignores_X-Forwarded-For_when_trust_is_false (0.00s)
+    --- PASS: TestClientIP/uses_X-Forwarded-For_when_trusted (0.00s)
+    --- PASS: TestClientIP/uses_X-Real-IP_when_trusted_and_X-Forwarded-For_not_present (0.00s)
+    --- PASS: TestClientIP/handles_IPv6_addresses (0.00s)
+    --- PASS: TestClientIP/only_trusts_specific_proxy_IPs (0.00s)
+PASS
+coverage: 76.7% of statements
+ok  	github.com/gourl/gourl/internal/middleware	(cached)	coverage: 76.7% of statements
+=== RUN   TestURL_Validate
+=== RUN   TestURL_Validate/valid_url
+=== RUN   TestURL_Validate/empty_short_code
+=== RUN   TestURL_Validate/short_code_too_long
+=== RUN   TestURL_Validate/empty_original_url
+=== RUN   TestURL_Validate/invalid_url_format
+=== RUN   TestURL_Validate/url_without_scheme
+=== RUN   TestURL_Validate/ftp_scheme_not_allowed
+--- PASS: TestURL_Validate (0.00s)
+    --- PASS: TestURL_Validate/valid_url (0.00s)
+    --- PASS: TestURL_Validate/empty_short_code (0.00s)
+    --- PASS: TestURL_Validate/short_code_too_long (0.00s)
+    --- PASS: TestURL_Validate/empty_original_url (0.00s)
+    --- PASS: TestURL_Validate/invalid_url_format (0.00s)
+    --- PASS: TestURL_Validate/url_without_scheme (0.00s)
+    --- PASS: TestURL_Validate/ftp_scheme_not_allowed (0.00s)
+=== RUN   TestURL_IsExpired
+=== RUN   TestURL_IsExpired/no_expiry
+=== RUN   TestURL_IsExpired/expired
+=== RUN   TestURL_IsExpired/not_expired
+--- PASS: TestURL_IsExpired (0.00s)
+    --- PASS: TestURL_IsExpired/no_expiry (0.00s)
+    --- PASS: TestURL_IsExpired/expired (0.00s)
+    --- PASS: TestURL_IsExpired/not_expired (0.00s)
+=== RUN   TestURLCreate_Validate
+=== RUN   TestURLCreate_Validate/valid_with_short_code
+=== RUN   TestURLCreate_Validate/valid_without_short_code
+=== RUN   TestURLCreate_Validate/empty_url
+=== RUN   TestURLCreate_Validate/invalid_url
+=== RUN   TestURLCreate_Validate/short_code_too_long
+--- PASS: TestURLCreate_Validate (0.00s)
+    --- PASS: TestURLCreate_Validate/valid_with_short_code (0.00s)
+    --- PASS: TestURLCreate_Validate/valid_without_short_code (0.00s)
+    --- PASS: TestURLCreate_Validate/empty_url (0.00s)
+    --- PASS: TestURLCreate_Validate/invalid_url (0.00s)
+    --- PASS: TestURLCreate_Validate/short_code_too_long (0.00s)
+=== RUN   TestIsValidURL
+=== RUN   TestIsValidURL/https://example.com
+=== RUN   TestIsValidURL/http://example.com
+=== RUN   TestIsValidURL/https://example.com/path?query=1
+=== RUN   TestIsValidURL/https://sub.example.com:8080/path
+=== RUN   TestIsValidURL/ftp://files.example.com
+=== RUN   TestIsValidURL/example.com
+=== RUN   TestIsValidURL/not_a_url
+=== RUN   TestIsValidURL/#00
+=== RUN   TestIsValidURL/___
+=== RUN   TestIsValidURL/javascript:alert(1)
+=== RUN   TestIsValidURL/file:///etc/passwd
+--- PASS: TestIsValidURL (0.00s)
+    --- PASS: TestIsValidURL/https://example.com (0.00s)
+    --- PASS: TestIsValidURL/http://example.com (0.00s)
+    --- PASS: TestIsValidURL/https://example.com/path?query=1 (0.00s)
+    --- PASS: TestIsValidURL/https://sub.example.com:8080/path (0.00s)
+    --- PASS: TestIsValidURL/ftp://files.example.com (0.00s)
+    --- PASS: TestIsValidURL/example.com (0.00s)
+    --- PASS: TestIsValidURL/not_a_url (0.00s)
+    --- PASS: TestIsValidURL/#00 (0.00s)
+    --- PASS: TestIsValidURL/___ (0.00s)
+    --- PASS: TestIsValidURL/javascript:alert(1) (0.00s)
+    --- PASS: TestIsValidURL/file:///etc/passwd (0.00s)
+PASS
+coverage: 93.5% of statements
+ok  	github.com/gourl/gourl/internal/models	(cached)	coverage: 93.5% of statements
+=== RUN   TestMemoryLimiter_Allow
+=== RUN   TestMemoryLimiter_Allow/allows_requests_under_limit
+=== RUN   TestMemoryLimiter_Allow/blocks_requests_over_limit
+=== RUN   TestMemoryLimiter_Allow/different_identifiers_have_separate_limits
+=== RUN   TestMemoryLimiter_Allow/old_requests_expire_from_window
+=== RUN   TestMemoryLimiter_Allow/returns_correct_reset_time
+--- PASS: TestMemoryLimiter_Allow (0.15s)
+    --- PASS: TestMemoryLimiter_Allow/allows_requests_under_limit (0.00s)
+    --- PASS: TestMemoryLimiter_Allow/blocks_requests_over_limit (0.00s)
+    --- PASS: TestMemoryLimiter_Allow/different_identifiers_have_separate_limits (0.00s)
+    --- PASS: TestMemoryLimiter_Allow/old_requests_expire_from_window (0.15s)
+    --- PASS: TestMemoryLimiter_Allow/returns_correct_reset_time (0.00s)
+=== RUN   TestMemoryLimiter_Reset
+=== RUN   TestMemoryLimiter_Reset/resets_limit_for_identifier
+--- PASS: TestMemoryLimiter_Reset (0.00s)
+    --- PASS: TestMemoryLimiter_Reset/resets_limit_for_identifier (0.00s)
+=== RUN   TestMemoryLimiter_Concurrency
+=== RUN   TestMemoryLimiter_Concurrency/handles_concurrent_requests_safely
+=== RUN   TestMemoryLimiter_Concurrency/handles_concurrent_requests_for_different_identifiers
+--- PASS: TestMemoryLimiter_Concurrency (0.04s)
+    --- PASS: TestMemoryLimiter_Concurrency/handles_concurrent_requests_safely (0.02s)
+    --- PASS: TestMemoryLimiter_Concurrency/handles_concurrent_requests_for_different_identifiers (0.03s)
+=== RUN   TestMemoryLimiter_ContextCancellation
+=== RUN   TestMemoryLimiter_ContextCancellation/respects_context_cancellation
+--- PASS: TestMemoryLimiter_ContextCancellation (0.00s)
+    --- PASS: TestMemoryLimiter_ContextCancellation/respects_context_cancellation (0.00s)
+PASS
+coverage: 89.8% of statements
+ok  	github.com/gourl/gourl/internal/ratelimit	(cached)	coverage: 89.8% of statements
+# github.com/gourl/gourl/tests/e2e.test
+ld: warning: '/private/var/folders/23/p7y1wcs959159d1n4f08hb3w0000gn/T/go-link-157113990/000013.o' has malformed LC_DYSYMTAB, expected 98 undefined symbols to start at index 884, found 95 undefined symbols starting at index 884
+=== RUN   TestCachedURLRepository_Create
+=== RUN   TestCachedURLRepository_Create/creates_in_both_db_and_cache
+--- PASS: TestCachedURLRepository_Create (0.12s)
+    --- PASS: TestCachedURLRepository_Create/creates_in_both_db_and_cache (0.03s)
+=== RUN   TestCachedURLRepository_GetByShortCode
+=== RUN   TestCachedURLRepository_GetByShortCode/cache_hit_returns_cached_value
+=== RUN   TestCachedURLRepository_GetByShortCode/cache_miss_falls_back_to_db
+=== RUN   TestCachedURLRepository_GetByShortCode/not_found_returns_error
+--- PASS: TestCachedURLRepository_GetByShortCode (0.09s)
+    --- PASS: TestCachedURLRepository_GetByShortCode/cache_hit_returns_cached_value (0.02s)
+    --- PASS: TestCachedURLRepository_GetByShortCode/cache_miss_falls_back_to_db (0.01s)
+    --- PASS: TestCachedURLRepository_GetByShortCode/not_found_returns_error (0.00s)
+=== RUN   TestCachedURLRepository_Delete
+--- PASS: TestCachedURLRepository_Delete (0.09s)
+=== RUN   TestCachedURLRepository_Exists
+=== RUN   TestCachedURLRepository_Exists/exists_returns_true_from_cache
+=== RUN   TestCachedURLRepository_Exists/exists_falls_back_to_db_when_not_in_cache
+=== RUN   TestCachedURLRepository_Exists/exists_returns_false_for_non-existent
+--- PASS: TestCachedURLRepository_Exists (0.09s)
+    --- PASS: TestCachedURLRepository_Exists/exists_returns_true_from_cache (0.02s)
+    --- PASS: TestCachedURLRepository_Exists/exists_falls_back_to_db_when_not_in_cache (0.01s)
+    --- PASS: TestCachedURLRepository_Exists/exists_returns_false_for_non-existent (0.00s)
+=== RUN   TestCachedURLRepository_IncrementClickCount
+--- PASS: TestCachedURLRepository_IncrementClickCount (0.11s)
+=== RUN   TestCachedURLRepository_HealthCheck
+--- PASS: TestCachedURLRepository_HealthCheck (0.08s)
+=== RUN   TestCachedURLRepository_MockCache
+=== RUN   TestCachedURLRepository_MockCache/write-through_caching
+--- PASS: TestCachedURLRepository_MockCache (0.10s)
+    --- PASS: TestCachedURLRepository_MockCache/write-through_caching (0.02s)
+=== RUN   TestShardedURLRepository_Create
+=== RUN   TestShardedURLRepository_Create/create_valid_URL
+--- PASS: TestShardedURLRepository_Create (0.12s)
+    --- PASS: TestShardedURLRepository_Create/create_valid_URL (0.02s)
+=== RUN   TestShardedURLRepository_GetByShortCode
+=== RUN   TestShardedURLRepository_GetByShortCode/get_existing_URL
+=== RUN   TestShardedURLRepository_GetByShortCode/get_non-existent_URL
+--- PASS: TestShardedURLRepository_GetByShortCode (0.09s)
+    --- PASS: TestShardedURLRepository_GetByShortCode/get_existing_URL (0.02s)
+    --- PASS: TestShardedURLRepository_GetByShortCode/get_non-existent_URL (0.00s)
+=== RUN   TestShardedURLRepository_Delete
+--- PASS: TestShardedURLRepository_Delete (0.14s)
+=== RUN   TestShardedURLRepository_IncrementClickCount
+--- PASS: TestShardedURLRepository_IncrementClickCount (0.09s)
+=== RUN   TestShardedURLRepository_Exists
+--- PASS: TestShardedURLRepository_Exists (0.08s)
+=== RUN   TestShardedURLRepository_DeleteExpired
+--- PASS: TestShardedURLRepository_DeleteExpired (0.07s)
+=== RUN   TestShardedURLRepository_HealthCheck
+--- PASS: TestShardedURLRepository_HealthCheck (0.06s)
+=== RUN   TestShardedURLRepository_ShardCount
+--- PASS: TestShardedURLRepository_ShardCount (0.07s)
+=== RUN   TestShardedURLRepository_GetByID
+--- PASS: TestShardedURLRepository_GetByID (0.07s)
+=== RUN   TestPostgresURLRepository_Create
+=== RUN   TestPostgresURLRepository_Create/create_valid_URL
+=== RUN   TestPostgresURLRepository_Create/create_with_expiry
+=== RUN   TestPostgresURLRepository_Create/duplicate_short_code
+=== RUN   TestPostgresURLRepository_Create/invalid_URL
+--- PASS: TestPostgresURLRepository_Create (0.08s)
+    --- PASS: TestPostgresURLRepository_Create/create_valid_URL (0.02s)
+    --- PASS: TestPostgresURLRepository_Create/create_with_expiry (0.01s)
+    --- PASS: TestPostgresURLRepository_Create/duplicate_short_code (0.01s)
+    --- PASS: TestPostgresURLRepository_Create/invalid_URL (0.00s)
+=== RUN   TestPostgresURLRepository_GetByShortCode
+=== RUN   TestPostgresURLRepository_GetByShortCode/get_existing_URL
+=== RUN   TestPostgresURLRepository_GetByShortCode/get_non-existent_URL
+--- PASS: TestPostgresURLRepository_GetByShortCode (0.09s)
+    --- PASS: TestPostgresURLRepository_GetByShortCode/get_existing_URL (0.02s)
+    --- PASS: TestPostgresURLRepository_GetByShortCode/get_non-existent_URL (0.00s)
+=== RUN   TestPostgresURLRepository_Delete
+=== RUN   TestPostgresURLRepository_Delete/delete_existing_URL
+=== RUN   TestPostgresURLRepository_Delete/delete_non-existent_URL
+--- PASS: TestPostgresURLRepository_Delete (0.07s)
+    --- PASS: TestPostgresURLRepository_Delete/delete_existing_URL (0.02s)
+    --- PASS: TestPostgresURLRepository_Delete/delete_non-existent_URL (0.00s)
+=== RUN   TestPostgresURLRepository_IncrementClickCount
+=== RUN   TestPostgresURLRepository_IncrementClickCount/increment_click_count
+=== RUN   TestPostgresURLRepository_IncrementClickCount/increment_non-existent_URL
+--- PASS: TestPostgresURLRepository_IncrementClickCount (0.10s)
+    --- PASS: TestPostgresURLRepository_IncrementClickCount/increment_click_count (0.04s)
+    --- PASS: TestPostgresURLRepository_IncrementClickCount/increment_non-existent_URL (0.00s)
+=== RUN   TestPostgresURLRepository_DeleteExpired
+--- PASS: TestPostgresURLRepository_DeleteExpired (0.10s)
+=== RUN   TestPostgresURLRepository_Exists
+=== RUN   TestPostgresURLRepository_Exists/exists_returns_true_for_existing
+=== RUN   TestPostgresURLRepository_Exists/exists_returns_false_for_non-existing
+--- PASS: TestPostgresURLRepository_Exists (0.10s)
+    --- PASS: TestPostgresURLRepository_Exists/exists_returns_true_for_existing (0.02s)
+    --- PASS: TestPostgresURLRepository_Exists/exists_returns_false_for_non-existing (0.00s)
+=== RUN   TestPostgresURLRepository_GetByID
+=== RUN   TestPostgresURLRepository_GetByID/get_by_ID
+=== RUN   TestPostgresURLRepository_GetByID/get_by_non-existent_ID
+--- PASS: TestPostgresURLRepository_GetByID (0.08s)
+    --- PASS: TestPostgresURLRepository_GetByID/get_by_ID (0.02s)
+    --- PASS: TestPostgresURLRepository_GetByID/get_by_non-existent_ID (0.00s)
+PASS
+coverage: 70.4% of statements
+ok  	github.com/gourl/gourl/internal/repository	3.293s	coverage: 70.4% of statements
+=== RUN   TestSanitizer_DangerousSchemes
+=== RUN   TestSanitizer_DangerousSchemes/javascript_scheme
+=== RUN   TestSanitizer_DangerousSchemes/javascript_scheme_uppercase
+=== RUN   TestSanitizer_DangerousSchemes/javascript_scheme_mixed_case
+=== RUN   TestSanitizer_DangerousSchemes/data_scheme
+=== RUN   TestSanitizer_DangerousSchemes/data_scheme_uppercase
+=== RUN   TestSanitizer_DangerousSchemes/vbscript_scheme
+=== RUN   TestSanitizer_DangerousSchemes/vbscript_scheme_uppercase
+=== RUN   TestSanitizer_DangerousSchemes/file_scheme
+=== RUN   TestSanitizer_DangerousSchemes/file_scheme_uppercase
+--- PASS: TestSanitizer_DangerousSchemes (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/javascript_scheme (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/javascript_scheme_uppercase (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/javascript_scheme_mixed_case (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/data_scheme (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/data_scheme_uppercase (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/vbscript_scheme (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/vbscript_scheme_uppercase (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/file_scheme (0.00s)
+    --- PASS: TestSanitizer_DangerousSchemes/file_scheme_uppercase (0.00s)
+=== RUN   TestSanitizer_PrivateIPs
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/localhost
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/localhost_uppercase
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_IPv4
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_range
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_192.168.x.x
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_192.168_max
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_10.x.x.x
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_10.x_max
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_172.16.x.x
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_172.31.x.x
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_IPv6
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_IPv6_expanded
+=== RUN   TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/link-local_IPv6
+=== RUN   TestSanitizer_PrivateIPs/allows_private_IPs_when_configured
+=== RUN   TestSanitizer_PrivateIPs/allows_public_IPs
+=== RUN   TestSanitizer_PrivateIPs/allows_public_IPs/https://example.com/path
+=== RUN   TestSanitizer_PrivateIPs/allows_public_IPs/https://203.0.113.1/path
+=== RUN   TestSanitizer_PrivateIPs/allows_public_IPs/https://8.8.8.8/dns
+=== RUN   TestSanitizer_PrivateIPs/allows_public_IPs/https://[2001:db8::1]/path
+--- PASS: TestSanitizer_PrivateIPs (0.00s)
+    --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/localhost (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/localhost_uppercase (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_IPv4 (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_range (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_192.168.x.x (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_192.168_max (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_10.x.x.x (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_10.x_max (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_172.16.x.x (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/private_172.31.x.x (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_IPv6 (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/loopback_IPv6_expanded (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/blocks_private_IPs_by_default/link-local_IPv6 (0.00s)
+    --- PASS: TestSanitizer_PrivateIPs/allows_private_IPs_when_configured (0.00s)
+    --- PASS: TestSanitizer_PrivateIPs/allows_public_IPs (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/allows_public_IPs/https://example.com/path (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/allows_public_IPs/https://203.0.113.1/path (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/allows_public_IPs/https://8.8.8.8/dns (0.00s)
+        --- PASS: TestSanitizer_PrivateIPs/allows_public_IPs/https://[2001:db8::1]/path (0.00s)
+=== RUN   TestSanitizer_URLLength
+=== RUN   TestSanitizer_URLLength/rejects_URLs_over_max_length
+=== RUN   TestSanitizer_URLLength/allows_URLs_under_max_length
+=== RUN   TestSanitizer_URLLength/uses_default_max_length
+--- PASS: TestSanitizer_URLLength (0.00s)
+    --- PASS: TestSanitizer_URLLength/rejects_URLs_over_max_length (0.00s)
+    --- PASS: TestSanitizer_URLLength/allows_URLs_under_max_length (0.00s)
+    --- PASS: TestSanitizer_URLLength/uses_default_max_length (0.00s)
+=== RUN   TestSanitizer_ValidURLs
+=== RUN   TestSanitizer_ValidURLs/https://example.com
+=== RUN   TestSanitizer_ValidURLs/https://example.com/path
+=== RUN   TestSanitizer_ValidURLs/https://example.com/path?query=value
+=== RUN   TestSanitizer_ValidURLs/https://example.com/path?query=value#fragment
+=== RUN   TestSanitizer_ValidURLs/http://example.com:8080/path
+=== RUN   TestSanitizer_ValidURLs/https://subdomain.example.com/path
+=== RUN   TestSanitizer_ValidURLs/https://example.com/path/to/resource.html
+=== RUN   TestSanitizer_ValidURLs/https://example.com/search?q=hello+world
+=== RUN   TestSanitizer_ValidURLs/https://user:pass@example.com/path
+--- PASS: TestSanitizer_ValidURLs (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://example.com (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://example.com/path (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://example.com/path?query=value (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://example.com/path?query=value#fragment (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/http://example.com:8080/path (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://subdomain.example.com/path (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://example.com/path/to/resource.html (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://example.com/search?q=hello+world (0.00s)
+    --- PASS: TestSanitizer_ValidURLs/https://user:pass@example.com/path (0.00s)
+=== RUN   TestSanitizer_InvalidURLs
+=== RUN   TestSanitizer_InvalidURLs/empty_URL
+=== RUN   TestSanitizer_InvalidURLs/whitespace_only
+=== RUN   TestSanitizer_InvalidURLs/no_scheme
+=== RUN   TestSanitizer_InvalidURLs/empty_scheme
+=== RUN   TestSanitizer_InvalidURLs/ftp_scheme
+=== RUN   TestSanitizer_InvalidURLs/mailto_scheme
+--- PASS: TestSanitizer_InvalidURLs (0.00s)
+    --- PASS: TestSanitizer_InvalidURLs/empty_URL (0.00s)
+    --- PASS: TestSanitizer_InvalidURLs/whitespace_only (0.00s)
+    --- PASS: TestSanitizer_InvalidURLs/no_scheme (0.00s)
+    --- PASS: TestSanitizer_InvalidURLs/empty_scheme (0.00s)
+    --- PASS: TestSanitizer_InvalidURLs/ftp_scheme (0.00s)
+    --- PASS: TestSanitizer_InvalidURLs/mailto_scheme (0.00s)
+=== RUN   TestSanitizer_BlockedHosts
+=== RUN   TestSanitizer_BlockedHosts/blocks_configured_hosts
+=== RUN   TestSanitizer_BlockedHosts/allows_non-blocked_hosts
+--- PASS: TestSanitizer_BlockedHosts (0.00s)
+    --- PASS: TestSanitizer_BlockedHosts/blocks_configured_hosts (0.00s)
+    --- PASS: TestSanitizer_BlockedHosts/allows_non-blocked_hosts (0.00s)
+=== RUN   TestDefaultConfig
+--- PASS: TestDefaultConfig (0.00s)
+=== RUN   TestIsPrivateIP
+=== RUN   TestIsPrivateIP/127.0.0.1
+=== RUN   TestIsPrivateIP/127.0.0.255
+=== RUN   TestIsPrivateIP/10.0.0.1
+=== RUN   TestIsPrivateIP/10.255.255.255
+=== RUN   TestIsPrivateIP/172.16.0.1
+=== RUN   TestIsPrivateIP/172.31.255.255
+=== RUN   TestIsPrivateIP/172.15.0.1
+=== RUN   TestIsPrivateIP/172.32.0.1
+=== RUN   TestIsPrivateIP/192.168.0.1
+=== RUN   TestIsPrivateIP/192.168.255.255
+=== RUN   TestIsPrivateIP/8.8.8.8
+=== RUN   TestIsPrivateIP/203.0.113.1
+=== RUN   TestIsPrivateIP/::1
+=== RUN   TestIsPrivateIP/fe80::1
+=== RUN   TestIsPrivateIP/2001:db8::1
+--- PASS: TestIsPrivateIP (0.00s)
+    --- PASS: TestIsPrivateIP/127.0.0.1 (0.00s)
+    --- PASS: TestIsPrivateIP/127.0.0.255 (0.00s)
+    --- PASS: TestIsPrivateIP/10.0.0.1 (0.00s)
+    --- PASS: TestIsPrivateIP/10.255.255.255 (0.00s)
+    --- PASS: TestIsPrivateIP/172.16.0.1 (0.00s)
+    --- PASS: TestIsPrivateIP/172.31.255.255 (0.00s)
+    --- PASS: TestIsPrivateIP/172.15.0.1 (0.00s)
+    --- PASS: TestIsPrivateIP/172.32.0.1 (0.00s)
+    --- PASS: TestIsPrivateIP/192.168.0.1 (0.00s)
+    --- PASS: TestIsPrivateIP/192.168.255.255 (0.00s)
+    --- PASS: TestIsPrivateIP/8.8.8.8 (0.00s)
+    --- PASS: TestIsPrivateIP/203.0.113.1 (0.00s)
+    --- PASS: TestIsPrivateIP/::1 (0.00s)
+    --- PASS: TestIsPrivateIP/fe80::1 (0.00s)
+    --- PASS: TestIsPrivateIP/2001:db8::1 (0.00s)
+=== RUN   TestSanitizer_IntegrationWithModels
+=== RUN   TestSanitizer_IntegrationWithModels/validates_URL_like_models_package
+--- PASS: TestSanitizer_IntegrationWithModels (0.00s)
+    --- PASS: TestSanitizer_IntegrationWithModels/validates_URL_like_models_package (0.00s)
+PASS
+coverage: 96.3% of statements
+ok  	github.com/gourl/gourl/internal/security	(cached)	coverage: 96.3% of statements
+=== RUN   TestNewServer
+--- PASS: TestNewServer (0.00s)
+=== RUN   TestServer_StartAndShutdown
+--- PASS: TestServer_StartAndShutdown (0.10s)
+=== RUN   TestServer_HealthEndpoint
+--- PASS: TestServer_HealthEndpoint (0.10s)
+=== RUN   TestServer_ReadyEndpoint
+--- PASS: TestServer_ReadyEndpoint (0.11s)
+=== RUN   TestServer_ReadyEndpoint_NotReady
+--- PASS: TestServer_ReadyEndpoint_NotReady (0.10s)
+=== RUN   TestServer_GracefulShutdown
+--- PASS: TestServer_GracefulShutdown (0.10s)
+=== RUN   TestServer_ShutdownTimeout
+--- PASS: TestServer_ShutdownTimeout (0.15s)
+PASS
+coverage: 43.9% of statements
+ok  	github.com/gourl/gourl/internal/server	(cached)	coverage: 43.9% of statements
+=== RUN   TestRedirectService_Redirect_CacheHit
+--- PASS: TestRedirectService_Redirect_CacheHit (0.00s)
+=== RUN   TestRedirectService_Redirect_NotFound
+--- PASS: TestRedirectService_Redirect_NotFound (0.00s)
+=== RUN   TestRedirectService_Redirect_Expired
+--- PASS: TestRedirectService_Redirect_Expired (0.00s)
+=== RUN   TestRedirectService_Redirect_NoExpiry
+--- PASS: TestRedirectService_Redirect_NoExpiry (0.00s)
+=== RUN   TestRedirectService_Redirect_IncrementFailure
+--- PASS: TestRedirectService_Redirect_IncrementFailure (0.00s)
+=== RUN   TestRedirectService_Redirect_DatabaseError
+--- PASS: TestRedirectService_Redirect_DatabaseError (0.00s)
+=== RUN   TestURLService_Create
+=== RUN   TestURLService_Create/valid_URL_creates_short_URL
+=== RUN   TestURLService_Create/URL_with_expiry_sets_expires_at
+=== RUN   TestURLService_Create/empty_URL_returns_error
+=== RUN   TestURLService_Create/invalid_URL_format_returns_error
+=== RUN   TestURLService_Create/URL_without_scheme_returns_error
+=== RUN   TestURLService_Create/generator_failure_returns_error
+=== RUN   TestURLService_Create/repository_failure_returns_error
+=== RUN   TestURLService_Create/max_retries_exceeded_returns_error
+--- PASS: TestURLService_Create (0.00s)
+    --- PASS: TestURLService_Create/valid_URL_creates_short_URL (0.00s)
+    --- PASS: TestURLService_Create/URL_with_expiry_sets_expires_at (0.00s)
+    --- PASS: TestURLService_Create/empty_URL_returns_error (0.00s)
+    --- PASS: TestURLService_Create/invalid_URL_format_returns_error (0.00s)
+    --- PASS: TestURLService_Create/URL_without_scheme_returns_error (0.00s)
+    --- PASS: TestURLService_Create/generator_failure_returns_error (0.00s)
+    --- PASS: TestURLService_Create/repository_failure_returns_error (0.00s)
+    --- PASS: TestURLService_Create/max_retries_exceeded_returns_error (0.00s)
+=== RUN   TestURLService_Get
+=== RUN   TestURLService_Get/existing_code_returns_URL_info
+=== RUN   TestURLService_Get/existing_code_with_future_expiry_returns_URL
+=== RUN   TestURLService_Get/non-existent_code_returns_not_found_error
+=== RUN   TestURLService_Get/expired_URL_returns_expired_error
+=== RUN   TestURLService_Get/repository_error_returns_error
+--- PASS: TestURLService_Get (0.00s)
+    --- PASS: TestURLService_Get/existing_code_returns_URL_info (0.00s)
+    --- PASS: TestURLService_Get/existing_code_with_future_expiry_returns_URL (0.00s)
+    --- PASS: TestURLService_Get/non-existent_code_returns_not_found_error (0.00s)
+    --- PASS: TestURLService_Get/expired_URL_returns_expired_error (0.00s)
+    --- PASS: TestURLService_Get/repository_error_returns_error (0.00s)
+=== RUN   TestURLService_Delete
+=== RUN   TestURLService_Delete/existing_code_deletes_successfully
+=== RUN   TestURLService_Delete/non-existent_code_returns_not_found_error
+=== RUN   TestURLService_Delete/repository_error_returns_error
+--- PASS: TestURLService_Delete (0.00s)
+    --- PASS: TestURLService_Delete/existing_code_deletes_successfully (0.00s)
+    --- PASS: TestURLService_Delete/non-existent_code_returns_not_found_error (0.00s)
+    --- PASS: TestURLService_Delete/repository_error_returns_error (0.00s)
+PASS
+coverage: 67.2% of statements
+ok  	github.com/gourl/gourl/internal/services	(cached)	coverage: 67.2% of statements
+=== RUN   TestNew
+--- PASS: TestNew (0.00s)
+=== RUN   TestLogger_Info
+--- PASS: TestLogger_Info (0.00s)
+=== RUN   TestLogger_Error
+--- PASS: TestLogger_Error (0.00s)
+=== RUN   TestLogger_Debug
+--- PASS: TestLogger_Debug (0.00s)
+=== RUN   TestLogger_Warn
+--- PASS: TestLogger_Warn (0.00s)
+=== RUN   TestLogger_LevelFiltering
+=== RUN   TestLogger_LevelFiltering/debug_logs_at_debug_level
+=== RUN   TestLogger_LevelFiltering/info_logs_at_debug_level
+=== RUN   TestLogger_LevelFiltering/debug_skipped_at_info_level
+=== RUN   TestLogger_LevelFiltering/info_logs_at_info_level
+=== RUN   TestLogger_LevelFiltering/warn_logs_at_info_level
+=== RUN   TestLogger_LevelFiltering/info_skipped_at_warn_level
+=== RUN   TestLogger_LevelFiltering/error_logs_at_error_level
+=== RUN   TestLogger_LevelFiltering/warn_skipped_at_error_level
+--- PASS: TestLogger_LevelFiltering (0.00s)
+    --- PASS: TestLogger_LevelFiltering/debug_logs_at_debug_level (0.00s)
+    --- PASS: TestLogger_LevelFiltering/info_logs_at_debug_level (0.00s)
+    --- PASS: TestLogger_LevelFiltering/debug_skipped_at_info_level (0.00s)
+    --- PASS: TestLogger_LevelFiltering/info_logs_at_info_level (0.00s)
+    --- PASS: TestLogger_LevelFiltering/warn_logs_at_info_level (0.00s)
+    --- PASS: TestLogger_LevelFiltering/info_skipped_at_warn_level (0.00s)
+    --- PASS: TestLogger_LevelFiltering/error_logs_at_error_level (0.00s)
+    --- PASS: TestLogger_LevelFiltering/warn_skipped_at_error_level (0.00s)
+=== RUN   TestLogger_With
+--- PASS: TestLogger_With (0.00s)
+=== RUN   TestLogger_JSONOutput
+--- PASS: TestLogger_JSONOutput (0.00s)
+=== RUN   TestParseLevel
+=== RUN   TestParseLevel/debug
+=== RUN   TestParseLevel/DEBUG
+=== RUN   TestParseLevel/info
+=== RUN   TestParseLevel/INFO
+=== RUN   TestParseLevel/warn
+=== RUN   TestParseLevel/warning
+=== RUN   TestParseLevel/error
+=== RUN   TestParseLevel/ERROR
+=== RUN   TestParseLevel/invalid
+=== RUN   TestParseLevel/#00
+--- PASS: TestParseLevel (0.00s)
+    --- PASS: TestParseLevel/debug (0.00s)
+    --- PASS: TestParseLevel/DEBUG (0.00s)
+    --- PASS: TestParseLevel/info (0.00s)
+    --- PASS: TestParseLevel/INFO (0.00s)
+    --- PASS: TestParseLevel/warn (0.00s)
+    --- PASS: TestParseLevel/warning (0.00s)
+    --- PASS: TestParseLevel/error (0.00s)
+    --- PASS: TestParseLevel/ERROR (0.00s)
+    --- PASS: TestParseLevel/invalid (0.00s)
+    --- PASS: TestParseLevel/#00 (0.00s)
+PASS
+coverage: 90.9% of statements
+ok  	github.com/gourl/gourl/pkg/logger	(cached)	coverage: 90.9% of statements
+?   	github.com/gourl/gourl/pkg/response	[no test files]
+?   	github.com/gourl/gourl/pkg/validator	[no test files]
+=== RUN   TestE2E_AnalyticsEndpoint
+=== RUN   TestE2E_AnalyticsEndpoint/returns_stats_for_existing_URL
+=== RUN   TestE2E_AnalyticsEndpoint/returns_404_for_non-existent_URL
+=== RUN   TestE2E_AnalyticsEndpoint/click_counter_records_clicks
+--- PASS: TestE2E_AnalyticsEndpoint (0.16s)
+    --- PASS: TestE2E_AnalyticsEndpoint/returns_stats_for_existing_URL (0.00s)
+    --- PASS: TestE2E_AnalyticsEndpoint/returns_404_for_non-existent_URL (0.00s)
+    --- PASS: TestE2E_AnalyticsEndpoint/click_counter_records_clicks (0.05s)
+=== RUN   TestE2E_ClickCounterBatching
+--- PASS: TestE2E_ClickCounterBatching (0.16s)
+=== RUN   TestSetupVerification
+=== RUN   TestSetupVerification/e2e_test_framework_is_operational
+--- PASS: TestSetupVerification (0.00s)
+    --- PASS: TestSetupVerification/e2e_test_framework_is_operational (0.00s)
+=== RUN   TestE2E_HealthEndpoint
+=== RUN   TestE2E_HealthEndpoint/GET_/health_returns_healthy_status
+=== RUN   TestE2E_HealthEndpoint/health_endpoint_is_idempotent
+--- PASS: TestE2E_HealthEndpoint (0.11s)
+    --- PASS: TestE2E_HealthEndpoint/GET_/health_returns_healthy_status (0.00s)
+    --- PASS: TestE2E_HealthEndpoint/health_endpoint_is_idempotent (0.00s)
+=== RUN   TestE2E_ReadyEndpoint
+=== RUN   TestE2E_ReadyEndpoint/GET_/ready_returns_ready_status_when_healthy
+=== RUN   TestE2E_ReadyEndpoint/GET_/ready_returns_503_when_not_ready
+=== RUN   TestE2E_ReadyEndpoint/ready_endpoint_reflects_dependency_health
+--- PASS: TestE2E_ReadyEndpoint (0.11s)
+    --- PASS: TestE2E_ReadyEndpoint/GET_/ready_returns_ready_status_when_healthy (0.00s)
+    --- PASS: TestE2E_ReadyEndpoint/GET_/ready_returns_503_when_not_ready (0.00s)
+    --- PASS: TestE2E_ReadyEndpoint/ready_endpoint_reflects_dependency_health (0.00s)
+=== RUN   TestE2E_ServerLifecycle
+=== RUN   TestE2E_ServerLifecycle/server_starts_and_stops_cleanly
+--- PASS: TestE2E_ServerLifecycle (0.10s)
+    --- PASS: TestE2E_ServerLifecycle/server_starts_and_stops_cleanly (0.10s)
+=== RUN   TestE2E_ConcurrentRequests
+=== RUN   TestE2E_ConcurrentRequests/handles_concurrent_requests
+--- PASS: TestE2E_ConcurrentRequests (0.13s)
+    --- PASS: TestE2E_ConcurrentRequests/handles_concurrent_requests (0.03s)
+=== RUN   TestE2E_RequestIDHeader
+=== RUN   TestE2E_RequestIDHeader/generates_request_ID_for_all_responses
+=== RUN   TestE2E_RequestIDHeader/preserves_incoming_request_ID
+--- PASS: TestE2E_RequestIDHeader (0.10s)
+    --- PASS: TestE2E_RequestIDHeader/generates_request_ID_for_all_responses (0.00s)
+    --- PASS: TestE2E_RequestIDHeader/preserves_incoming_request_ID (0.00s)
+=== RUN   TestE2E_RateLimiting
+=== RUN   TestE2E_RateLimiting/allows_requests_under_limit
+=== RUN   TestE2E_RateLimiting/returns_429_when_over_limit
+--- PASS: TestE2E_RateLimiting (0.11s)
+    --- PASS: TestE2E_RateLimiting/allows_requests_under_limit (0.00s)
+    --- PASS: TestE2E_RateLimiting/returns_429_when_over_limit (0.00s)
+=== RUN   TestE2E_MaliciousURLRejection
+=== RUN   TestE2E_MaliciousURLRejection/blocks_javascript_scheme
+=== RUN   TestE2E_MaliciousURLRejection/blocks_data_scheme
+=== RUN   TestE2E_MaliciousURLRejection/blocks_localhost
+=== RUN   TestE2E_MaliciousURLRejection/blocks_private_IP_127.0.0.1
+=== RUN   TestE2E_MaliciousURLRejection/blocks_private_IP_192.168.x.x
+=== RUN   TestE2E_MaliciousURLRejection/blocks_private_IP_10.x.x.x
+--- PASS: TestE2E_MaliciousURLRejection (0.11s)
+    --- PASS: TestE2E_MaliciousURLRejection/blocks_javascript_scheme (0.00s)
+    --- PASS: TestE2E_MaliciousURLRejection/blocks_data_scheme (0.00s)
+    --- PASS: TestE2E_MaliciousURLRejection/blocks_localhost (0.00s)
+    --- PASS: TestE2E_MaliciousURLRejection/blocks_private_IP_127.0.0.1 (0.00s)
+    --- PASS: TestE2E_MaliciousURLRejection/blocks_private_IP_192.168.x.x (0.00s)
+    --- PASS: TestE2E_MaliciousURLRejection/blocks_private_IP_10.x.x.x (0.00s)
+=== RUN   TestE2E_ValidURLAccepted
+=== RUN   TestE2E_ValidURLAccepted/https://example.com
+=== RUN   TestE2E_ValidURLAccepted/https://example.com/path
+=== RUN   TestE2E_ValidURLAccepted/https://example.com/path?query=value
+=== RUN   TestE2E_ValidURLAccepted/http://example.com:8080/path
+--- PASS: TestE2E_ValidURLAccepted (0.11s)
+    --- PASS: TestE2E_ValidURLAccepted/https://example.com (0.00s)
+    --- PASS: TestE2E_ValidURLAccepted/https://example.com/path (0.00s)
+    --- PASS: TestE2E_ValidURLAccepted/https://example.com/path?query=value (0.01s)
+    --- PASS: TestE2E_ValidURLAccepted/http://example.com:8080/path (0.00s)
+=== RUN   TestE2E_RateLimitHeaders
+--- PASS: TestE2E_RateLimitHeaders (0.10s)
+=== RUN   TestE2E_ShortenURL
+=== RUN   TestE2E_ShortenURL/POST_/api/v1/shorten_creates_and_returns_short_URL
+=== RUN   TestE2E_ShortenURL/POST_/api/v1/shorten_with_expires_in_creates_expiring_URL
+=== RUN   TestE2E_ShortenURL/POST_/api/v1/shorten_with_empty_URL_returns_400
+=== RUN   TestE2E_ShortenURL/POST_/api/v1/shorten_with_invalid_URL_returns_400
+--- PASS: TestE2E_ShortenURL (0.11s)
+    --- PASS: TestE2E_ShortenURL/POST_/api/v1/shorten_creates_and_returns_short_URL (0.00s)
+    --- PASS: TestE2E_ShortenURL/POST_/api/v1/shorten_with_expires_in_creates_expiring_URL (0.00s)
+    --- PASS: TestE2E_ShortenURL/POST_/api/v1/shorten_with_empty_URL_returns_400 (0.00s)
+    --- PASS: TestE2E_ShortenURL/POST_/api/v1/shorten_with_invalid_URL_returns_400 (0.00s)
+=== RUN   TestE2E_GetURL
+=== RUN   TestE2E_GetURL/GET_/api/v1/urls/:code_returns_URL_info_for_created_URL
+=== RUN   TestE2E_GetURL/GET_/api/v1/urls/:code_returns_404_for_non-existent_URL
+--- PASS: TestE2E_GetURL (0.10s)
+    --- PASS: TestE2E_GetURL/GET_/api/v1/urls/:code_returns_URL_info_for_created_URL (0.00s)
+    --- PASS: TestE2E_GetURL/GET_/api/v1/urls/:code_returns_404_for_non-existent_URL (0.00s)
+=== RUN   TestE2E_DeleteURL
+=== RUN   TestE2E_DeleteURL/DELETE_/api/v1/urls/:code_removes_URL
+=== RUN   TestE2E_DeleteURL/DELETE_/api/v1/urls/:code_returns_404_for_non-existent_URL
+--- PASS: TestE2E_DeleteURL (0.11s)
+    --- PASS: TestE2E_DeleteURL/DELETE_/api/v1/urls/:code_removes_URL (0.00s)
+    --- PASS: TestE2E_DeleteURL/DELETE_/api/v1/urls/:code_returns_404_for_non-existent_URL (0.00s)
+=== RUN   TestE2E_URLFlow_CreateRetrieveDelete
+=== RUN   TestE2E_URLFlow_CreateRetrieveDelete/complete_URL_lifecycle:_create_->_retrieve_->_delete_->_verify_gone
+--- PASS: TestE2E_URLFlow_CreateRetrieveDelete (0.10s)
+    --- PASS: TestE2E_URLFlow_CreateRetrieveDelete/complete_URL_lifecycle:_create_->_retrieve_->_delete_->_verify_gone (0.00s)
+=== RUN   TestE2E_ConcurrentShortenRequests
+=== RUN   TestE2E_ConcurrentShortenRequests/handles_concurrent_shorten_requests
+--- PASS: TestE2E_ConcurrentShortenRequests (0.11s)
+    --- PASS: TestE2E_ConcurrentShortenRequests/handles_concurrent_shorten_requests (0.01s)
+=== RUN   TestE2E_Redirect
+=== RUN   TestE2E_Redirect/GET_/:code_redirects_to_original_URL_with_302
+=== RUN   TestE2E_Redirect/GET_/:code_returns_404_for_non-existent_code
+=== RUN   TestE2E_Redirect/GET_/:code_returns_410_Gone_for_expired_URL
+=== RUN   TestE2E_Redirect/redirect_increments_click_count
+--- PASS: TestE2E_Redirect (0.12s)
+    --- PASS: TestE2E_Redirect/GET_/:code_redirects_to_original_URL_with_302 (0.00s)
+    --- PASS: TestE2E_Redirect/GET_/:code_returns_404_for_non-existent_code (0.00s)
+    --- PASS: TestE2E_Redirect/GET_/:code_returns_410_Gone_for_expired_URL (0.01s)
+    --- PASS: TestE2E_Redirect/redirect_increments_click_count (0.00s)
+=== RUN   TestE2E_RedirectLatency
+=== RUN   TestE2E_RedirectLatency/redirect_latency_is_under_50ms_for_in-memory_lookups
+    url_api_test.go:647: Average redirect latency: 888.726µs
+--- PASS: TestE2E_RedirectLatency (0.11s)
+    --- PASS: TestE2E_RedirectLatency/redirect_latency_is_under_50ms_for_in-memory_lookups (0.01s)
+=== RUN   TestE2E_RedirectFullFlow
+=== RUN   TestE2E_RedirectFullFlow/complete_redirect_flow:_create_->_redirect_->_verify_click_count_->_delete
+--- PASS: TestE2E_RedirectFullFlow (0.12s)
+    --- PASS: TestE2E_RedirectFullFlow/complete_redirect_flow:_create_->_redirect_->_verify_click_count_->_delete (0.01s)
+PASS
+coverage: [no statements]
+ok  	github.com/gourl/gourl/tests/e2e	(cached)	coverage: [no statements]
+=== RUN   TestIDGenerationAtScale
+=== RUN   TestIDGenerationAtScale/random_generator_produces_unique_codes_at_scale
+    idgen_test.go:32: Generated 100000 unique codes successfully
+=== RUN   TestIDGenerationAtScale/snowflake_generator_produces_unique_codes_at_scale
+    idgen_test.go:49: Generated 100000 unique snowflake codes successfully
+=== RUN   TestIDGenerationAtScale/concurrent_random_generation_at_scale
+    idgen_test.go:84: Generated 100000 codes with 0 duplicates and 0 errors
+=== RUN   TestIDGenerationAtScale/concurrent_snowflake_generation_at_scale
+    idgen_test.go:126: Generated 100000 snowflake codes with 0 duplicates and 0 errors
+--- PASS: TestIDGenerationAtScale (3.97s)
+    --- PASS: TestIDGenerationAtScale/random_generator_produces_unique_codes_at_scale (2.02s)
+    --- PASS: TestIDGenerationAtScale/snowflake_generator_produces_unique_codes_at_scale (0.59s)
+    --- PASS: TestIDGenerationAtScale/concurrent_random_generation_at_scale (0.91s)
+    --- PASS: TestIDGenerationAtScale/concurrent_snowflake_generation_at_scale (0.44s)
+=== RUN   TestCollisionAwareGeneratorAtScale
+=== RUN   TestCollisionAwareGeneratorAtScale/handles_collisions_gracefully_at_scale
+    idgen_test.go:169: Generated 10000 codes with 4 retries and 4 collisions
+=== RUN   TestCollisionAwareGeneratorAtScale/concurrent_collision-aware_generation
+    idgen_test.go:217: Concurrent generation: 10000 codes, 0 collisions, 0 retries, 0 errors
+--- PASS: TestCollisionAwareGeneratorAtScale (0.18s)
+    --- PASS: TestCollisionAwareGeneratorAtScale/handles_collisions_gracefully_at_scale (0.11s)
+    --- PASS: TestCollisionAwareGeneratorAtScale/concurrent_collision-aware_generation (0.07s)
+=== RUN   TestBase62PerformanceAtScale
+=== RUN   TestBase62PerformanceAtScale/encode_decode_round_trip_at_scale
+    idgen_test.go:249: Successfully completed 1000000 round trips
+--- PASS: TestBase62PerformanceAtScale (4.66s)
+    --- PASS: TestBase62PerformanceAtScale/encode_decode_round_trip_at_scale (4.66s)
+=== RUN   TestSetupVerification
+=== RUN   TestSetupVerification/integration_test_framework_is_operational
+--- PASS: TestSetupVerification (0.00s)
+    --- PASS: TestSetupVerification/integration_test_framework_is_operational (0.00s)
+PASS
+coverage: [no statements]
+ok  	github.com/gourl/gourl/tests/integration	(cached)	coverage: [no statements]
+	github.com/gourl/gourl/tests/testutil		coverage: 0.0% of statements
+=== RUN   TestSetupVerification
+=== RUN   TestSetupVerification/unit_test_framework_is_operational
+--- PASS: TestSetupVerification (0.00s)
+    --- PASS: TestSetupVerification/unit_test_framework_is_operational (0.00s)
+PASS
+coverage: [no statements]
+ok  	github.com/gourl/gourl/tests/unit	(cached)	coverage: [no statements]
+FAIL

@@ -87,6 +87,19 @@ func (c *CachedURLRepository) IncrementClickCount(ctx context.Context, shortCode
 	return nil
 }
 
+// BatchIncrementClickCounts increments click counts for multiple URLs
+// and invalidates their cache entries.
+func (c *CachedURLRepository) BatchIncrementClickCounts(ctx context.Context, counts map[string]int64) error {
+	if err := c.repo.BatchIncrementClickCounts(ctx, counts); err != nil {
+		return err
+	}
+	// Invalidate cache entries for all updated URLs
+	for shortCode := range counts {
+		_ = c.cache.Delete(ctx, shortCode)
+	}
+	return nil
+}
+
 // DeleteExpired removes expired URLs from database and doesn't touch cache
 // (cache entries have their own TTL).
 func (c *CachedURLRepository) DeleteExpired(ctx context.Context) (int64, error) {

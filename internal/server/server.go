@@ -11,22 +11,27 @@ import (
 
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/handlers"
+	"github.com/gourl/gourl/internal/metrics"
+	"github.com/gourl/gourl/internal/middleware"
+	"github.com/gourl/gourl/internal/ratelimit"
 	"github.com/gourl/gourl/internal/repository"
 	"github.com/gourl/gourl/pkg/logger"
 )
 
 // Server represents the HTTP server.
 type Server struct {
-	cfg             *config.Config
-	log             *logger.Logger
-	httpServer      *http.Server
-	healthHandler   *handlers.HealthHandler
-	urlHandler      *handlers.URLHandler
-	redirectHandler *handlers.RedirectHandler
-	urlRepo         repository.URLRepository
-	listener        net.Listener
-	running         bool
-	mu              sync.RWMutex
+	cfg              *config.Config
+	log              *logger.Logger
+	httpServer       *http.Server
+	healthHandler    *handlers.HealthHandler
+	urlHandler       *handlers.URLHandler
+	redirectHandler  *handlers.RedirectHandler
+	analyticsHandler *handlers.AnalyticsHandler
+	urlRepo          repository.URLRepository
+	rateLimiter      ratelimit.Limiter
+	listener         net.Listener
+	running          bool
+	mu               sync.RWMutex
 }
 
 // New creates a new Server instance.
@@ -41,14 +46,47 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 	mux := http.NewServeMux()
 	s.registerRoutes(mux)
 
+	// Build middleware chain
+	handler := s.buildMiddlewareChain(mux)
+
 	s.httpServer = &http.Server{
 		Addr:         cfg.Server.Address(),
-		Handler:      mux,
+		Handler:      handler,
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 	}
 
 	return s
+}
+
+// buildMiddlewareChain creates the middleware chain for the server.
+func (s *Server) buildMiddlewareChain(handler http.Handler) http.Handler {
+	// Start with metrics and request ID middleware (always enabled)
+	chain := middleware.New(
+		middleware.Metrics(),
+		middleware.RequestID(),
+		middleware.ClientIP(s.cfg.Rate.TrustProxy, nil),
+	)
+
+	// Add rate limiting if enabled
+	if s.cfg.Rate.Enabled {
+		s.rateLimiter = ratelimit.NewMemoryLimiter(ratelimit.Config{
+			Requests: s.cfg.Rate.Requests,
+			Window:   s.cfg.Rate.Window,
+		})
+
+		chain = chain.Append(middleware.RateLimit(s.rateLimiter, middleware.RateLimitConfig{
+			TrustProxy:   s.cfg.Rate.TrustProxy,
+			APIKeyHeader: s.cfg.Rate.APIKeyHeader,
+		}))
+
+		s.log.Info("rate limiting enabled",
+			"requests", s.cfg.Rate.Requests,
+			"window", s.cfg.Rate.Window.String(),
+		)
+	}
+
+	return chain.Then(handler)
 }
 
 // registerRoutes sets up the HTTP routes.
@@ -57,10 +95,16 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /health", s.healthHandler.Health)
 	mux.HandleFunc("GET /ready", s.healthHandler.Ready)
 
+	// Metrics endpoint for Prometheus
+	mux.Handle("GET /metrics", metrics.Handler())
+
 	// API v1 routes - URL shortening
 	mux.HandleFunc("POST /api/v1/shorten", s.handleShorten)
 	mux.HandleFunc("GET /api/v1/urls/", s.handleGetURL)
 	mux.HandleFunc("DELETE /api/v1/urls/", s.handleDeleteURL)
+
+	// Analytics routes
+	mux.HandleFunc("GET /api/v1/analytics/", s.handleAnalytics)
 
 	// Redirect route - GET /{code} for URL redirects
 	// Note: More specific routes like /health, /ready are matched first by Go's ServeMux
@@ -118,6 +162,20 @@ func (s *Server) handleRedirect(w http.ResponseWriter, r *http.Request) {
 	s.redirectHandler.Redirect(w, r, shortCode)
 }
 
+// handleAnalytics routes to the analytics handler for stats.
+func (s *Server) handleAnalytics(w http.ResponseWriter, r *http.Request) {
+	if s.analyticsHandler == nil {
+		http.Error(w, "Analytics service not configured", http.StatusServiceUnavailable)
+		return
+	}
+	shortCode := extractShortCode(r.URL.Path, "/api/v1/analytics/")
+	if shortCode == "" || strings.Contains(shortCode, "/") {
+		http.Error(w, "invalid short code format", http.StatusBadRequest)
+		return
+	}
+	s.analyticsHandler.GetStats(w, r, shortCode)
+}
+
 // extractShortCode extracts the short code from the URL path.
 func extractShortCode(path, prefix string) string {
 	if !strings.HasPrefix(path, prefix) {
@@ -164,6 +222,13 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	s.healthHandler.SetReady(false)
 
 	err := s.httpServer.Shutdown(ctx)
+
+	// Close rate limiter if it exists
+	if s.rateLimiter != nil {
+		if closeErr := s.rateLimiter.Close(); closeErr != nil {
+			s.log.Error("failed to close rate limiter", "error", closeErr.Error())
+		}
+	}
 
 	s.mu.Lock()
 	s.running = false
@@ -228,4 +293,14 @@ func (s *Server) SetRedirectHandler(h *handlers.RedirectHandler) {
 // RedirectHandler returns the redirect handler.
 func (s *Server) RedirectHandler() *handlers.RedirectHandler {
 	return s.redirectHandler
+}
+
+// SetAnalyticsHandler sets the analytics handler for the server.
+func (s *Server) SetAnalyticsHandler(h *handlers.AnalyticsHandler) {
+	s.analyticsHandler = h
+}
+
+// AnalyticsHandler returns the analytics handler.
+func (s *Server) AnalyticsHandler() *handlers.AnalyticsHandler {
+	return s.analyticsHandler
 }
