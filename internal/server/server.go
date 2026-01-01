@@ -11,6 +11,7 @@ import (
 
 	"github.com/gourl/gourl/internal/config"
 	"github.com/gourl/gourl/internal/handlers"
+	"github.com/gourl/gourl/internal/metrics"
 	"github.com/gourl/gourl/internal/middleware"
 	"github.com/gourl/gourl/internal/ratelimit"
 	"github.com/gourl/gourl/internal/repository"
@@ -60,8 +61,9 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 
 // buildMiddlewareChain creates the middleware chain for the server.
 func (s *Server) buildMiddlewareChain(handler http.Handler) http.Handler {
-	// Start with request ID middleware (always enabled)
+	// Start with metrics and request ID middleware (always enabled)
 	chain := middleware.New(
+		middleware.Metrics(),
 		middleware.RequestID(),
 		middleware.ClientIP(s.cfg.Rate.TrustProxy, nil),
 	)
@@ -92,6 +94,9 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	// Health check routes (GET only)
 	mux.HandleFunc("GET /health", s.healthHandler.Health)
 	mux.HandleFunc("GET /ready", s.healthHandler.Ready)
+
+	// Metrics endpoint for Prometheus
+	mux.Handle("GET /metrics", metrics.Handler())
 
 	// API v1 routes - URL shortening
 	mux.HandleFunc("POST /api/v1/shorten", s.handleShorten)
