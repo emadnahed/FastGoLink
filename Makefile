@@ -72,6 +72,12 @@ test-coverage: ## Run tests with coverage report
 	$(GOCMD) tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML)
 	@echo "Coverage report generated: $(COVERAGE_HTML)"
 
+test-all: ## Run ALL tests (unit, integration, e2e) with full coverage report
+	@./scripts/test-all.sh
+
+test-all-docker: ## Run ALL tests with Docker services (PostgreSQL, Redis)
+	@./scripts/test-all.sh --docker
+
 ## Code quality commands
 lint: ## Run golangci-lint
 	@echo "Running linter..."
