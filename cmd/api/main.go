@@ -163,11 +163,12 @@ func run() error {
 
 		// Create click analytics counter with async batch processing
 		clickFlusher := analytics.NewRepositoryFlusher(urlRepo, log)
-		clickCounter := analytics.NewClickCounter(analytics.DefaultConfig(), clickFlusher)
+		clickCounterConfig := analytics.DefaultConfig()
+		clickCounter := analytics.NewClickCounter(clickCounterConfig, clickFlusher)
 		defer clickCounter.Stop()
 		log.Info("click analytics configured",
-			"flush_interval", analytics.DefaultConfig().FlushInterval.String(),
-			"batch_size", analytics.DefaultConfig().BatchSize,
+			"flush_interval", clickCounterConfig.FlushInterval.String(),
+			"batch_size", clickCounterConfig.BatchSize,
 		)
 
 		// Create redirect service with analytics
