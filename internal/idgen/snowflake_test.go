@@ -177,3 +177,45 @@ func BenchmarkSnowflakeGenerator_ConcurrentGenerate(b *testing.B) {
 		}
 	})
 }
+
+func TestSnowflakeGenerator_ClockMovedBackwards(t *testing.T) {
+	t.Run("returns error when clock moves backwards", func(t *testing.T) {
+		gen, err := NewSnowflakeGenerator(1, 7)
+		require.NoError(t, err)
+
+		// Generate first code to set lastTime
+		_, err = gen.Generate()
+		require.NoError(t, err)
+
+		// Simulate clock moving backwards by setting lastTime to far future
+		gen.mu.Lock()
+		gen.lastTime = gen.lastTime + 100000 // Set to future
+		gen.mu.Unlock()
+
+		// Next generate should fail
+		code, err := gen.Generate()
+		assert.ErrorIs(t, err, ErrClockMovedBackwards)
+		assert.Empty(t, code)
+	})
+}
+
+func TestSnowflakeGenerator_SequenceOverflow(t *testing.T) {
+	t.Run("handles sequence overflow by waiting for next millisecond", func(t *testing.T) {
+		gen, err := NewSnowflakeGenerator(1, 7)
+		require.NoError(t, err)
+
+		// Generate first code
+		code1, err := gen.Generate()
+		require.NoError(t, err)
+
+		// Set sequence to near max to trigger overflow on next call
+		gen.mu.Lock()
+		gen.sequence = maxSequence
+		gen.mu.Unlock()
+
+		// Next generate should handle overflow and still succeed
+		code2, err := gen.Generate()
+		require.NoError(t, err)
+		assert.NotEqual(t, code1, code2)
+	})
+}

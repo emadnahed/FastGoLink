@@ -157,3 +157,93 @@ func TestParseLevel(t *testing.T) {
 		})
 	}
 }
+
+func TestLevel_String(t *testing.T) {
+	tests := []struct {
+		level    Level
+		expected string
+	}{
+		{LevelDebug, "DEBUG"},
+		{LevelInfo, "INFO"},
+		{LevelWarn, "WARN"},
+		{LevelError, "ERROR"},
+		{Level(999), "INFO"}, // invalid level defaults to INFO
+	}
+
+	for _, tt := range tests {
+		assert.Equal(t, tt.expected, tt.level.String())
+	}
+}
+
+func TestNew_NilOutput(t *testing.T) {
+	// When nil output is provided, it should default to os.Stdout
+	log := New(nil, "info")
+	assert.NotNil(t, log)
+	// We can't easily test os.Stdout was used, but the logger should work
+}
+
+func TestLogger_With_NonStringKey(t *testing.T) {
+	var buf bytes.Buffer
+	log := New(&buf, "info")
+
+	// Pass non-string keys - they should be skipped
+	childLog := log.With(123, "value", "validkey", "validvalue")
+	childLog.Info("test")
+
+	var entry map[string]interface{}
+	err := json.Unmarshal(buf.Bytes(), &entry)
+	require.NoError(t, err)
+
+	// Non-string key (123) should be skipped
+	_, hasIntKey := entry["123"]
+	assert.False(t, hasIntKey)
+
+	// Valid string key should be present
+	assert.Equal(t, "validvalue", entry["validkey"])
+}
+
+func TestLogger_With_CopiesExistingFields(t *testing.T) {
+	var buf bytes.Buffer
+	log := New(&buf, "info")
+
+	// Create first child with some fields
+	child1 := log.With("service", "gourl")
+
+	// Create second child from first child - should copy service field
+	child2 := child1.With("request_id", "abc123")
+	child2.Info("test")
+
+	var entry map[string]interface{}
+	err := json.Unmarshal(buf.Bytes(), &entry)
+	require.NoError(t, err)
+
+	// Both fields should be present
+	assert.Equal(t, "gourl", entry["service"])
+	assert.Equal(t, "abc123", entry["request_id"])
+}
+
+func TestLogger_Log_NonStringKeyval(t *testing.T) {
+	var buf bytes.Buffer
+	log := New(&buf, "info")
+
+	// Pass non-string key in log call - should be skipped
+	log.Info("message", 42, "skipme", "good", "value")
+
+	var entry map[string]interface{}
+	err := json.Unmarshal(buf.Bytes(), &entry)
+	require.NoError(t, err)
+
+	assert.Equal(t, "value", entry["good"])
+}
+
+func TestLogger_Log_MarshalError(t *testing.T) {
+	var buf bytes.Buffer
+	log := New(&buf, "info")
+
+	// Channels can't be marshalled to JSON
+	ch := make(chan int)
+	log.Info("message", "channel", ch)
+
+	// Output should be empty because marshal failed
+	assert.Empty(t, buf.String())
+}

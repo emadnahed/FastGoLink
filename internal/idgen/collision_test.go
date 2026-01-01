@@ -175,6 +175,89 @@ func TestCollisionAwareGenerator_WithContext(t *testing.T) {
 	})
 }
 
+func TestCollisionAwareGenerator_ResetStats(t *testing.T) {
+	t.Run("resets all statistics to zero", func(t *testing.T) {
+		checker := newMockExistenceChecker()
+		base := NewRandomGenerator(7)
+		gen := NewCollisionAwareGenerator(base, checker, 10)
+
+		// Generate some codes to accumulate stats
+		for i := 0; i < 5; i++ {
+			code, _ := gen.Generate()
+			checker.Add(code)
+		}
+
+		stats := gen.Stats()
+		assert.Equal(t, int64(5), stats.TotalGenerations)
+
+		// Reset stats
+		gen.ResetStats()
+
+		// Verify stats are zero
+		statsAfterReset := gen.Stats()
+		assert.Equal(t, int64(0), statsAfterReset.TotalGenerations)
+		assert.Equal(t, int64(0), statsAfterReset.TotalRetries)
+		assert.Equal(t, int64(0), statsAfterReset.TotalCollisions)
+	})
+}
+
+func TestNewCollisionAwareGenerator_NegativeMaxRetries(t *testing.T) {
+	t.Run("negative maxRetries is treated as zero", func(t *testing.T) {
+		base := NewRandomGenerator(7)
+		checker := &alwaysExistsChecker{}
+		gen := NewCollisionAwareGenerator(base, checker, -5)
+
+		// With 0 retries and always colliding checker, should fail immediately
+		code, err := gen.Generate()
+		assert.ErrorIs(t, err, ErrMaxRetriesExceeded)
+		assert.Empty(t, code)
+	})
+}
+
+// errorGenerator always returns an error.
+type errorGenerator struct {
+	err error
+}
+
+func (e *errorGenerator) Generate() (string, error) {
+	return "", e.err
+}
+
+// errorExistenceChecker always returns an error.
+type errorExistenceChecker struct {
+	err error
+}
+
+func (e *errorExistenceChecker) Exists(ctx context.Context, code string) (bool, error) {
+	return false, e.err
+}
+
+func TestCollisionAwareGenerator_BaseGeneratorError(t *testing.T) {
+	t.Run("returns error when base generator fails", func(t *testing.T) {
+		expectedErr := assert.AnError
+		base := &errorGenerator{err: expectedErr}
+		checker := &neverExistsChecker{}
+		gen := NewCollisionAwareGenerator(base, checker, 3)
+
+		code, err := gen.Generate()
+		assert.ErrorIs(t, err, expectedErr)
+		assert.Empty(t, code)
+	})
+}
+
+func TestCollisionAwareGenerator_CheckerError(t *testing.T) {
+	t.Run("returns error when existence checker fails", func(t *testing.T) {
+		expectedErr := assert.AnError
+		base := NewRandomGenerator(7)
+		checker := &errorExistenceChecker{err: expectedErr}
+		gen := NewCollisionAwareGenerator(base, checker, 3)
+
+		code, err := gen.Generate()
+		assert.ErrorIs(t, err, expectedErr)
+		assert.Empty(t, code)
+	})
+}
+
 func BenchmarkCollisionAwareGenerator(b *testing.B) {
 	checker := &neverExistsChecker{}
 	base := NewRandomGenerator(7)

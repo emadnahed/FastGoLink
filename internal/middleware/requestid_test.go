@@ -284,4 +284,46 @@ func TestClientIP(t *testing.T) {
 		// capturedIP is now from the second request
 		assert.Equal(t, "192.168.1.1", capturedIP)
 	})
+
+	t.Run("falls back to X-Real-IP when X-Forwarded-For is empty", func(t *testing.T) {
+		mw := ClientIP(true, nil)
+		var capturedIP string
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			capturedIP = GetClientIP(r.Context())
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "10.0.0.1:80"
+		req.Header.Set("X-Forwarded-For", "  ") // Empty after trimming
+		req.Header.Set("X-Real-IP", "203.0.113.100")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		// Should fall back to X-Real-IP
+		assert.Equal(t, "203.0.113.100", capturedIP)
+	})
+
+	t.Run("falls back to RemoteAddr when both headers empty", func(t *testing.T) {
+		mw := ClientIP(true, nil)
+		var capturedIP string
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			capturedIP = GetClientIP(r.Context())
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "10.0.0.1:80"
+		req.Header.Set("X-Forwarded-For", "  ") // Empty after trimming
+		// No X-Real-IP header
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		// Should fall back to RemoteAddr
+		assert.Equal(t, "10.0.0.1", capturedIP)
+	})
 }

@@ -141,3 +141,49 @@ func TestRedirectService_Redirect_DatabaseError(t *testing.T) {
 
 	mockRepo.AssertExpectations(t)
 }
+
+// mockClickRecorder implements ClickRecorder for testing.
+type mockClickRecorder struct {
+	recordedCodes []string
+}
+
+func (m *mockClickRecorder) RecordClick(shortCode string) {
+	m.recordedCodes = append(m.recordedCodes, shortCode)
+}
+
+func TestNewRedirectServiceWithAnalytics(t *testing.T) {
+	mockRepo := new(MockURLRepository)
+	recorder := &mockClickRecorder{}
+
+	service := NewRedirectServiceWithAnalytics(mockRepo, recorder)
+
+	assert.NotNil(t, service)
+	assert.NotNil(t, service.repo)
+	assert.NotNil(t, service.clickRecorder)
+}
+
+func TestRedirectService_Redirect_WithClickRecorder(t *testing.T) {
+	mockRepo := new(MockURLRepository)
+	recorder := &mockClickRecorder{}
+	service := NewRedirectServiceWithAnalytics(mockRepo, recorder)
+
+	mockRepo.On("GetByShortCode", mock.Anything, "abc1234").Return(&models.URL{
+		ID:          1,
+		ShortCode:   "abc1234",
+		OriginalURL: "https://example.com/path",
+		CreatedAt:   time.Now(),
+		ExpiresAt:   nil,
+		ClickCount:  10,
+	}, nil)
+
+	result, err := service.Redirect(context.Background(), "abc1234")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "https://example.com/path", result.OriginalURL)
+
+	// Verify click was recorded via the click recorder, not directly to repo
+	assert.Contains(t, recorder.recordedCodes, "abc1234")
+	mockRepo.AssertNotCalled(t, "IncrementClickCount", mock.Anything, mock.Anything)
+	mockRepo.AssertExpectations(t)
+}

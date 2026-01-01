@@ -180,6 +180,8 @@ func TestSanitizer_InvalidURLs(t *testing.T) {
 		{"://example.com", "empty scheme"},
 		{"ftp://example.com", "ftp scheme"},
 		{"mailto:test@example.com", "mailto scheme"},
+		{"http:///path", "empty host"},
+		{"https://?query=1", "no host with query"},
 	}
 
 	for _, tc := range invalidURLs {
@@ -249,6 +251,12 @@ func TestIsPrivateIP(t *testing.T) {
 		{"::1", true},
 		{"fe80::1", true},
 		{"2001:db8::1", false},
+		{"0.0.0.0", true},        // unspecified IPv4
+		{"::", true},             // unspecified IPv6
+		{"[::1]", true},          // bracketed IPv6
+		{"[fe80::1]", true},      // bracketed link-local IPv6
+		{"169.254.1.1", true},    // link-local IPv4
+		{"not-an-ip", false},     // invalid IP string
 	}
 
 	for _, tc := range tests {

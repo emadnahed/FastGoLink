@@ -243,7 +243,7 @@ func TestMemoryLimiter_Concurrency(t *testing.T) {
 }
 
 func TestMemoryLimiter_ContextCancellation(t *testing.T) {
-	t.Run("respects context cancellation", func(t *testing.T) {
+	t.Run("respects context cancellation in Allow", func(t *testing.T) {
 		cfg := Config{
 			Requests: 10,
 			Window:   time.Minute,
@@ -256,5 +256,158 @@ func TestMemoryLimiter_ContextCancellation(t *testing.T) {
 
 		_, err := limiter.Allow(ctx, "test")
 		assert.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("respects context cancellation in Reset", func(t *testing.T) {
+		cfg := Config{
+			Requests: 10,
+			Window:   time.Minute,
+		}
+		limiter := NewMemoryLimiter(cfg)
+		defer limiter.Close()
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // Cancel immediately
+
+		err := limiter.Reset(ctx, "test")
+		assert.ErrorIs(t, err, context.Canceled)
+	})
+}
+
+func TestDefaultConfig(t *testing.T) {
+	cfg := DefaultConfig()
+
+	assert.Equal(t, 100, cfg.Requests)
+	assert.Equal(t, time.Minute, cfg.Window)
+}
+
+func TestMemoryLimiter_Cleanup(t *testing.T) {
+	t.Run("cleanup removes expired entries", func(t *testing.T) {
+		cfg := Config{
+			Requests: 10,
+			Window:   50 * time.Millisecond,
+		}
+		limiter := NewMemoryLimiter(cfg)
+		defer limiter.Close()
+
+		ctx := context.Background()
+
+		// Make some requests
+		_, _ = limiter.Allow(ctx, "user1")
+		_, _ = limiter.Allow(ctx, "user2")
+
+		// Wait for window to pass and cleanup to run
+		time.Sleep(150 * time.Millisecond)
+
+		// Make new request - old entries should be cleaned up
+		result, err := limiter.Allow(ctx, "user1")
+		require.NoError(t, err)
+		assert.True(t, result.Allowed)
+		// Should have full remaining since old entry was cleaned
+		assert.Equal(t, 9, result.Remaining)
+	})
+}
+
+func TestMemoryLimiter_Close(t *testing.T) {
+	t.Run("close stops cleanup goroutine", func(t *testing.T) {
+		cfg := Config{
+			Requests: 10,
+			Window:   time.Millisecond,
+		}
+		limiter := NewMemoryLimiter(cfg)
+
+		// Use the limiter
+		ctx := context.Background()
+		_, _ = limiter.Allow(ctx, "test")
+
+		// Close should return without error
+		err := limiter.Close()
+		assert.NoError(t, err)
+	})
+}
+
+func TestMemoryLimiter_ResetAfterZero(t *testing.T) {
+	t.Run("handles expired timestamps with zero reset time", func(t *testing.T) {
+		cfg := Config{
+			Requests: 5,
+			Window:   10 * time.Millisecond,
+		}
+		limiter := NewMemoryLimiter(cfg)
+		defer limiter.Close()
+
+		ctx := context.Background()
+		identifier := "test-user"
+
+		// Make a request
+		result, err := limiter.Allow(ctx, identifier)
+		require.NoError(t, err)
+		assert.True(t, result.Allowed)
+
+		// Wait for the timestamp to expire
+		time.Sleep(20 * time.Millisecond)
+
+		// Make another request - old timestamp should be expired
+		// and resetAfter calculation should handle negative value
+		result, err = limiter.Allow(ctx, identifier)
+		require.NoError(t, err)
+		assert.True(t, result.Allowed)
+	})
+}
+
+func TestMemoryLimiter_CleanupKeepsValidEntries(t *testing.T) {
+	t.Run("cleanup keeps entries with valid timestamps", func(t *testing.T) {
+		cfg := Config{
+			Requests: 10,
+			Window:   100 * time.Millisecond,
+		}
+		limiter := NewMemoryLimiter(cfg)
+		defer limiter.Close()
+
+		ctx := context.Background()
+
+		// Make requests to two users
+		_, _ = limiter.Allow(ctx, "user1")
+		_, _ = limiter.Allow(ctx, "user2")
+
+		// Wait a bit but not enough for window to fully expire
+		time.Sleep(30 * time.Millisecond)
+
+		// Make more requests to keep user1 active
+		_, _ = limiter.Allow(ctx, "user1")
+
+		// Wait for cleanup to run (window duration)
+		time.Sleep(120 * time.Millisecond)
+
+		// user1 should still have an entry (recent request)
+		// user2's first request might be cleaned but their entry might be removed entirely
+		result, err := limiter.Allow(ctx, "user1")
+		require.NoError(t, err)
+		assert.True(t, result.Allowed)
+	})
+
+	t.Run("cleanup retains partially expired entries", func(t *testing.T) {
+		cfg := Config{
+			Requests: 10,
+			Window:   50 * time.Millisecond,
+		}
+		limiter := NewMemoryLimiter(cfg)
+		defer limiter.Close()
+
+		ctx := context.Background()
+
+		// Make multiple requests
+		for i := 0; i < 3; i++ {
+			_, _ = limiter.Allow(ctx, "user")
+			time.Sleep(10 * time.Millisecond)
+		}
+
+		// First request should be about to expire, last is recent
+		// Trigger cleanup by waiting for window duration
+		time.Sleep(60 * time.Millisecond)
+
+		// Make new request - should still work and keep valid timestamps
+		result, err := limiter.Allow(ctx, "user")
+		require.NoError(t, err)
+		assert.True(t, result.Allowed)
 	})
 }

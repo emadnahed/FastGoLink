@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     build:
@@ -45,6 +43,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./migrations/001_create_urls_table.up.sql:/docker-entrypoint-initdb.d/001_create_urls_table.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gourl -d gourl"]
       interval: 5s

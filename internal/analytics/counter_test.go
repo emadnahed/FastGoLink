@@ -145,6 +145,25 @@ func TestClickCounter_Stop(t *testing.T) {
 		counter.Stop()
 		counter.Stop()
 	})
+
+	t.Run("RecordClick after stop is ignored", func(t *testing.T) {
+		flusher := newMockFlusher()
+		counter := NewClickCounter(Config{
+			FlushInterval: 10 * time.Second,
+			BatchSize:     1000,
+		}, flusher)
+
+		counter.RecordClick("before-stop")
+		counter.Stop()
+
+		// These should be ignored
+		counter.RecordClick("after-stop")
+		counter.RecordClick("after-stop")
+
+		counts := flusher.getCounts()
+		assert.Equal(t, int64(1), counts["before-stop"])
+		assert.Equal(t, int64(0), counts["after-stop"])
+	})
 }
 
 func TestClickCounter_Concurrency(t *testing.T) {

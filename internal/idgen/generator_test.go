@@ -107,6 +107,23 @@ func TestGeneratorInterface(t *testing.T) {
 	var _ Generator = (*SnowflakeGenerator)(nil)
 }
 
+func TestRandomGenerator_Length(t *testing.T) {
+	t.Run("returns configured length", func(t *testing.T) {
+		gen := NewRandomGenerator(10)
+		assert.Equal(t, 10, gen.Length())
+	})
+
+	t.Run("returns default length when zero provided", func(t *testing.T) {
+		gen := NewRandomGenerator(0)
+		assert.Equal(t, DefaultCodeLength, gen.Length())
+	})
+
+	t.Run("returns default length when negative provided", func(t *testing.T) {
+		gen := NewRandomGenerator(-5)
+		assert.Equal(t, DefaultCodeLength, gen.Length())
+	})
+}
+
 func BenchmarkRandomGenerator_Generate(b *testing.B) {
 	gen := NewRandomGenerator(7)
 	b.ResetTimer()
@@ -123,4 +140,31 @@ func BenchmarkRandomGenerator_ConcurrentGenerate(b *testing.B) {
 			_, _ = gen.Generate()
 		}
 	})
+}
+
+func TestIsValid(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"empty string", "", false},
+		{"single valid char", "a", true},
+		{"valid lowercase", "abc", true},
+		{"valid uppercase", "ABC", true},
+		{"valid digits", "123", true},
+		{"valid mixed", "aB3xY9", true},
+		{"full base62 set", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", true},
+		{"invalid char underscore", "abc_123", false},
+		{"invalid char dash", "abc-123", false},
+		{"invalid char space", "abc 123", false},
+		{"invalid char special", "abc!123", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsValid(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

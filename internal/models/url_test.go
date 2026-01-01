@@ -195,6 +195,10 @@ func TestIsValidURL(t *testing.T) {
 		{"   ", false},
 		{"javascript:alert(1)", false},
 		{"file:///etc/passwd", false},
+		{"http://", false},                             // scheme but no host
+		{"https://?query=1", false},                    // scheme with query but no host
+		{"://missing-scheme.com", false},               // missing scheme
+		{"\x00invalid\x00", false},                     // control characters (parse error)
 	}
 
 	for _, tt := range tests {

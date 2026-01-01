@@ -105,7 +105,9 @@ deps-upgrade: ## Upgrade all dependencies
 ## Docker commands
 docker-up: ## Start Docker services (PostgreSQL, Redis)
 	@echo "Starting Docker services..."
-	docker-compose up -d
+	docker-compose up -d postgres redis
+	@echo "Waiting for services to be healthy..."
+	@sleep 5
 	@echo "Services started"
 
 docker-down: ## Stop Docker services
@@ -115,6 +117,34 @@ docker-down: ## Stop Docker services
 
 docker-logs: ## View Docker service logs
 	docker-compose logs -f
+
+docker-build: ## Build Docker image
+	@echo "Building Docker image..."
+	docker-compose build api
+	@echo "Build complete"
+
+docker-run: docker-build ## Build and run all services in Docker
+	@echo "Starting all services..."
+	docker-compose up -d
+	@echo "All services started"
+
+docker-test: docker-up ## Run full tests with Docker services
+	@echo "Running full tests with PostgreSQL and Redis..."
+	@sleep 3
+	TEST_POSTGRES=true TEST_REDIS=true $(GOTEST) -v -race ./...
+
+docker-clean: docker-down ## Clean Docker volumes and containers
+	@echo "Cleaning Docker resources..."
+	docker-compose down -v --remove-orphans
+	docker rmi gourl-api:latest 2>/dev/null || true
+	@echo "Clean complete"
+
+docker-prod: ## Start production-like environment
+	@echo "Building production image..."
+	docker build -t gourl-api:latest .
+	@echo "Starting production environment..."
+	docker-compose -f docker-compose.prod.yml up -d
+	@echo "Production environment started"
 
 ## Database commands
 db-migrate: ## Run database migrations

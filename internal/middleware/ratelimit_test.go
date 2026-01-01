@@ -298,4 +298,194 @@ func TestRateLimit(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, resetTime > time.Now().Unix())
 	})
+
+	t.Run("uses X-Real-IP when X-Forwarded-For is not set", func(t *testing.T) {
+		limiter := &mockLimiter{
+			result: &ratelimit.Result{
+				Allowed:   true,
+				Remaining: 9,
+				Limit:     10,
+			},
+		}
+
+		mw := RateLimit(limiter, RateLimitConfig{
+			TrustProxy: true,
+		})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "10.0.0.1:80"
+		req.Header.Set("X-Real-IP", "203.0.113.100")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		require.Len(t, limiter.calls, 1)
+		assert.Equal(t, "ip:203.0.113.100", limiter.calls[0])
+	})
+
+	t.Run("handles RemoteAddr without port", func(t *testing.T) {
+		limiter := &mockLimiter{
+			result: &ratelimit.Result{
+				Allowed:   true,
+				Remaining: 9,
+				Limit:     10,
+			},
+		}
+
+		mw := RateLimit(limiter, RateLimitConfig{})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "192.168.1.1" // No port
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		require.Len(t, limiter.calls, 1)
+		assert.Equal(t, "ip:192.168.1.1", limiter.calls[0])
+	})
+
+	t.Run("ignores X-Forwarded-For when not from trusted proxy", func(t *testing.T) {
+		limiter := &mockLimiter{
+			result: &ratelimit.Result{
+				Allowed:   true,
+				Remaining: 9,
+				Limit:     10,
+			},
+		}
+
+		mw := RateLimit(limiter, RateLimitConfig{
+			TrustProxy:     true,
+			TrustedProxies: []string{"10.0.0.1"},
+		})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "192.168.1.1:12345" // Not in trusted proxies
+		req.Header.Set("X-Forwarded-For", "203.0.113.195")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		// Should use RemoteAddr since not from trusted proxy
+		require.Len(t, limiter.calls, 1)
+		assert.Equal(t, "ip:192.168.1.1", limiter.calls[0])
+	})
+
+	t.Run("handles empty X-Forwarded-For value", func(t *testing.T) {
+		limiter := &mockLimiter{
+			result: &ratelimit.Result{
+				Allowed:   true,
+				Remaining: 9,
+				Limit:     10,
+			},
+		}
+
+		mw := RateLimit(limiter, RateLimitConfig{
+			TrustProxy: true,
+		})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "10.0.0.1:80"
+		req.Header.Set("X-Forwarded-For", "  ,  ") // Empty values
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		// Should fall back to RemoteAddr
+		require.Len(t, limiter.calls, 1)
+		assert.Equal(t, "ip:10.0.0.1", limiter.calls[0])
+	})
+
+	t.Run("sets headers without ResetAfter", func(t *testing.T) {
+		limiter := &mockLimiter{
+			result: &ratelimit.Result{
+				Allowed:    true,
+				Remaining:  9,
+				Limit:      10,
+				ResetAfter: 0, // No reset time
+			},
+		}
+
+		mw := RateLimit(limiter, RateLimitConfig{})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "192.168.1.1:12345"
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, "10", rec.Header().Get("X-RateLimit-Limit"))
+		assert.Equal(t, "9", rec.Header().Get("X-RateLimit-Remaining"))
+		assert.Empty(t, rec.Header().Get("X-RateLimit-Reset")) // Should not be set
+	})
+
+	t.Run("sets minimum RetryAfter of 1 second when less than 1s", func(t *testing.T) {
+		limiter := &mockLimiter{
+			result: &ratelimit.Result{
+				Allowed:    false,
+				Remaining:  0,
+				RetryAfter: 500 * time.Millisecond, // Less than 1 second
+				Limit:      10,
+			},
+		}
+
+		mw := RateLimit(limiter, RateLimitConfig{})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "192.168.1.1:12345"
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusTooManyRequests, rec.Code)
+		// Should be minimum of 1 second
+		assert.Equal(t, "1", rec.Header().Get("Retry-After"))
+	})
+
+	t.Run("does not set RetryAfter header when allowed", func(t *testing.T) {
+		limiter := &mockLimiter{
+			result: &ratelimit.Result{
+				Allowed:    true,
+				Remaining:  5,
+				RetryAfter: 0,
+				Limit:      10,
+			},
+		}
+
+		mw := RateLimit(limiter, RateLimitConfig{})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "192.168.1.1:12345"
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Empty(t, rec.Header().Get("Retry-After"))
+	})
 }

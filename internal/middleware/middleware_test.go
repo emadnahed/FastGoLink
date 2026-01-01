@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -8,7 +9,49 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGetRequestID(t *testing.T) {
+	t.Run("returns request ID from context", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), RequestIDKey, "test-123")
+		assert.Equal(t, "test-123", GetRequestID(ctx))
+	})
+
+	t.Run("returns empty string when no request ID in context", func(t *testing.T) {
+		ctx := context.Background()
+		assert.Equal(t, "", GetRequestID(ctx))
+	})
+
+	t.Run("returns empty string when value is wrong type", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), RequestIDKey, 12345)
+		assert.Equal(t, "", GetRequestID(ctx))
+	})
+}
+
+func TestGetClientIP(t *testing.T) {
+	t.Run("returns client IP from context", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), ClientIPKey, "192.168.1.1")
+		assert.Equal(t, "192.168.1.1", GetClientIP(ctx))
+	})
+
+	t.Run("returns empty string when no client IP in context", func(t *testing.T) {
+		ctx := context.Background()
+		assert.Equal(t, "", GetClientIP(ctx))
+	})
+
+	t.Run("returns empty string when value is wrong type", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), ClientIPKey, []byte("ip"))
+		assert.Equal(t, "", GetClientIP(ctx))
+	})
+}
+
 func TestChain_Then(t *testing.T) {
+	t.Run("nil handler uses DefaultServeMux", func(t *testing.T) {
+		chain := New()
+		handler := chain.Then(nil)
+
+		// Should not panic and should return DefaultServeMux
+		assert.NotNil(t, handler)
+	})
+
 	t.Run("empty chain passes through to handler", func(t *testing.T) {
 		chain := New()
 		called := false
