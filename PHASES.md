@@ -112,15 +112,15 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 4: ID Generation
+## Phase 4: ID Generation (COMPLETE)
 
 **Goal**: Unique, URL-safe short codes
 
 ### Features
-- [ ] Base62 encoding/decoding
-- [ ] Snowflake-style ID generation (optional)
-- [ ] Collision detection and retry
-- [ ] Configurable code length
+- [x] Base62 encoding/decoding
+- [x] Snowflake-style ID generation
+- [x] Collision detection and retry
+- [x] Configurable code length
 
 ### Strategies
 - **Base62**: Compact alphanumeric codes (a-z, A-Z, 0-9)
@@ -208,29 +208,28 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 7: Rate Limiting & Security
+## Phase 7: Rate Limiting & Security (COMPLETE)
 
 **Goal**: Abuse protection and security hardening
 
 ### Features
-- [ ] IP-based rate limiting
-- [ ] API key rate limiting (optional)
-- [ ] Request validation middleware
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] URL sanitization (prevent XSS, malicious URLs)
-- [ ] Request ID tracking
+- [x] IP-based rate limiting (sliding window algorithm)
+- [x] API key rate limiting (optional via X-API-Key header)
+- [x] Request validation middleware
+- [x] SQL injection prevention (parameterized queries - already in place)
+- [x] URL sanitization (block dangerous schemes, private IPs)
+- [x] Request ID tracking (X-Request-ID header)
 
-### TDD Approach
-1. Write failing tests for rate limiter
-2. Implement sliding window rate limiting
-3. Write failing tests for malicious URLs
-4. Implement URL sanitization
-5. Security-focused tests
+### Implementation Details
+- **Middleware Chain**: RequestID → ClientIP → RateLimit → Handler
+- **Rate Limiter**: In-memory sliding window with configurable requests/window
+- **URL Sanitizer**: Blocks javascript:/data:/vbscript:/file: schemes, localhost, private IPs
+- **Configuration**: Via environment variables (RATE_LIMIT_*, SECURITY_*)
 
 ### Tests Required
 - **Unit**: Rate limit algorithm, URL sanitization
 - **Integration**: Middleware chain
-- **E2E**: Rate limit enforcement
+- **E2E**: Rate limit enforcement, malicious URL blocking
 
 ---
 

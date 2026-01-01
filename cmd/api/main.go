@@ -14,6 +14,7 @@ import (
 	"github.com/gourl/gourl/internal/handlers"
 	"github.com/gourl/gourl/internal/idgen"
 	"github.com/gourl/gourl/internal/repository"
+	"github.com/gourl/gourl/internal/security"
 	"github.com/gourl/gourl/internal/server"
 	"github.com/gourl/gourl/internal/services"
 	"github.com/gourl/gourl/pkg/logger"
@@ -141,13 +142,22 @@ func run() error {
 		baseGen := idgen.NewRandomGenerator(cfg.URL.ShortCodeLen)
 		collisionGen := idgen.NewCollisionAwareGenerator(baseGen, urlRepo, cfg.URL.IDGenMaxRetries)
 
+		// Create URL sanitizer with security config
+		sanitizer := security.NewSanitizer(security.Config{
+			MaxURLLength:    cfg.Security.MaxURLLength,
+			AllowPrivateIPs: cfg.Security.AllowPrivateIPs,
+			BlockedHosts:    cfg.Security.BlockedHostsList(),
+		})
+
 		// Create URL service and handler
-		urlService := services.NewURLService(urlRepo, collisionGen, cfg.URL.BaseURL)
+		urlService := services.NewURLServiceWithSanitizer(urlRepo, collisionGen, sanitizer, cfg.URL.BaseURL)
 		urlHandler := handlers.NewURLHandler(urlService)
 		srv.SetURLHandler(urlHandler)
 		log.Info("URL shortening API configured",
 			"base_url", cfg.URL.BaseURL,
 			"code_length", cfg.URL.ShortCodeLen,
+			"max_url_length", cfg.Security.MaxURLLength,
+			"allow_private_ips", cfg.Security.AllowPrivateIPs,
 		)
 
 		// Create redirect service and handler

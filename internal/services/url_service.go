@@ -3,12 +3,22 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/gourl/gourl/internal/idgen"
 	"github.com/gourl/gourl/internal/models"
 	"github.com/gourl/gourl/internal/repository"
+	"github.com/gourl/gourl/internal/security"
+)
+
+// Security-related errors for URL validation.
+var (
+	ErrDangerousURL   = errors.New("URL contains dangerous scheme")
+	ErrPrivateIPURL   = errors.New("private IP addresses are not allowed")
+	ErrBlockedHostURL = errors.New("host is blocked")
+	ErrURLTooLong     = errors.New("URL exceeds maximum length")
 )
 
 // CreateURLRequest represents the input for creating a short URL.
@@ -37,6 +47,7 @@ type URLService interface {
 type URLServiceImpl struct {
 	repo      repository.URLRepository
 	generator idgen.Generator
+	sanitizer *security.Sanitizer
 	baseURL   string
 }
 
@@ -45,6 +56,17 @@ func NewURLService(repo repository.URLRepository, gen idgen.Generator, baseURL s
 	return &URLServiceImpl{
 		repo:      repo,
 		generator: gen,
+		sanitizer: security.NewSanitizer(security.DefaultConfig()),
+		baseURL:   baseURL,
+	}
+}
+
+// NewURLServiceWithSanitizer creates a new URLService with a custom sanitizer.
+func NewURLServiceWithSanitizer(repo repository.URLRepository, gen idgen.Generator, sanitizer *security.Sanitizer, baseURL string) *URLServiceImpl {
+	return &URLServiceImpl{
+		repo:      repo,
+		generator: gen,
+		sanitizer: sanitizer,
 		baseURL:   baseURL,
 	}
 }
@@ -54,6 +76,13 @@ func (s *URLServiceImpl) Create(ctx context.Context, req CreateURLRequest) (*Cre
 	// Validate the original URL first
 	if req.OriginalURL == "" {
 		return nil, models.ErrEmptyURL
+	}
+
+	// Security validation using sanitizer
+	if s.sanitizer != nil {
+		if err := s.sanitizer.Validate(req.OriginalURL); err != nil {
+			return nil, mapSecurityError(err)
+		}
 	}
 
 	// Use URLCreate's validation for URL format
@@ -113,4 +142,20 @@ func (s *URLServiceImpl) Get(ctx context.Context, shortCode string) (*models.URL
 // Delete removes a URL by its short code.
 func (s *URLServiceImpl) Delete(ctx context.Context, shortCode string) error {
 	return s.repo.Delete(ctx, shortCode)
+}
+
+// mapSecurityError maps security package errors to service errors.
+func mapSecurityError(err error) error {
+	switch {
+	case errors.Is(err, security.ErrDangerousScheme):
+		return ErrDangerousURL
+	case errors.Is(err, security.ErrPrivateIP):
+		return ErrPrivateIPURL
+	case errors.Is(err, security.ErrBlockedHost):
+		return ErrBlockedHostURL
+	case errors.Is(err, security.ErrURLTooLong):
+		return ErrURLTooLong
+	default:
+		return models.ErrInvalidURL
+	}
 }
