@@ -72,6 +72,43 @@ test-coverage: ## Run tests with coverage report
 	$(GOCMD) tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML)
 	@echo "Coverage report generated: $(COVERAGE_HTML)"
 
+test-all: ## Run ALL tests (unit, integration, e2e) with full coverage report
+	@./scripts/test-all.sh
+
+test-all-docker: ## Run ALL tests with Docker services (PostgreSQL, Redis)
+	@./scripts/test-all.sh --docker
+
+## Performance testing commands
+bench: ## Run Go benchmarks
+	@echo "Running benchmarks..."
+	$(GOTEST) -bench=. -benchmem -run=^$$ ./tests/benchmark/...
+
+bench-cpu: ## Run benchmarks with CPU profiling
+	@echo "Running benchmarks with CPU profile..."
+	$(GOTEST) -bench=. -benchmem -cpuprofile=cpu.prof -run=^$$ ./tests/benchmark/...
+	@echo "CPU profile saved to cpu.prof. View with: go tool pprof cpu.prof"
+
+bench-mem: ## Run benchmarks with memory profiling
+	@echo "Running benchmarks with memory profile..."
+	$(GOTEST) -bench=. -benchmem -memprofile=mem.prof -run=^$$ ./tests/benchmark/...
+	@echo "Memory profile saved to mem.prof. View with: go tool pprof mem.prof"
+
+test-stress: ## Run stress tests (latency + concurrency)
+	@echo "Running stress tests..."
+	$(GOTEST) -v -run="TestConcurrencyStress|TestLatencyPercentiles" ./tests/benchmark/...
+
+loadtest: ## Run load test against local server (start server first with 'make run')
+	@./scripts/loadtest.sh
+
+loadtest-quick: ## Run quick load test
+	@./scripts/loadtest.sh --quick
+
+loadtest-full: ## Run full load test
+	@./scripts/loadtest.sh --full
+
+loadtest-stress: ## Run stress load test
+	@./scripts/loadtest.sh --stress
+
 ## Code quality commands
 lint: ## Run golangci-lint
 	@echo "Running linter..."
