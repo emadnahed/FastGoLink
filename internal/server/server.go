@@ -19,17 +19,18 @@ import (
 
 // Server represents the HTTP server.
 type Server struct {
-	cfg             *config.Config
-	log             *logger.Logger
-	httpServer      *http.Server
-	healthHandler   *handlers.HealthHandler
-	urlHandler      *handlers.URLHandler
-	redirectHandler *handlers.RedirectHandler
-	urlRepo         repository.URLRepository
-	rateLimiter     ratelimit.Limiter
-	listener        net.Listener
-	running         bool
-	mu              sync.RWMutex
+	cfg              *config.Config
+	log              *logger.Logger
+	httpServer       *http.Server
+	healthHandler    *handlers.HealthHandler
+	urlHandler       *handlers.URLHandler
+	redirectHandler  *handlers.RedirectHandler
+	analyticsHandler *handlers.AnalyticsHandler
+	urlRepo          repository.URLRepository
+	rateLimiter      ratelimit.Limiter
+	listener         net.Listener
+	running          bool
+	mu               sync.RWMutex
 }
 
 // New creates a new Server instance.
@@ -97,6 +98,9 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/urls/", s.handleGetURL)
 	mux.HandleFunc("DELETE /api/v1/urls/", s.handleDeleteURL)
 
+	// Analytics routes
+	mux.HandleFunc("GET /api/v1/analytics/", s.handleAnalytics)
+
 	// Redirect route - GET /{code} for URL redirects
 	// Note: More specific routes like /health, /ready are matched first by Go's ServeMux
 	mux.HandleFunc("GET /{code}", s.handleRedirect)
@@ -151,6 +155,20 @@ func (s *Server) handleRedirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.redirectHandler.Redirect(w, r, shortCode)
+}
+
+// handleAnalytics routes to the analytics handler for stats.
+func (s *Server) handleAnalytics(w http.ResponseWriter, r *http.Request) {
+	if s.analyticsHandler == nil {
+		http.Error(w, "Analytics service not configured", http.StatusServiceUnavailable)
+		return
+	}
+	shortCode := extractShortCode(r.URL.Path, "/api/v1/analytics/")
+	if shortCode == "" || strings.Contains(shortCode, "/") {
+		http.Error(w, "invalid short code format", http.StatusBadRequest)
+		return
+	}
+	s.analyticsHandler.GetStats(w, r, shortCode)
 }
 
 // extractShortCode extracts the short code from the URL path.
@@ -270,4 +288,14 @@ func (s *Server) SetRedirectHandler(h *handlers.RedirectHandler) {
 // RedirectHandler returns the redirect handler.
 func (s *Server) RedirectHandler() *handlers.RedirectHandler {
 	return s.redirectHandler
+}
+
+// SetAnalyticsHandler sets the analytics handler for the server.
+func (s *Server) SetAnalyticsHandler(h *handlers.AnalyticsHandler) {
+	s.analyticsHandler = h
+}
+
+// AnalyticsHandler returns the analytics handler.
+func (s *Server) AnalyticsHandler() *handlers.AnalyticsHandler {
+	return s.analyticsHandler
 }

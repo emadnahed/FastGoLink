@@ -108,6 +108,18 @@ func (r *InMemoryURLRepository) IncrementClickCount(ctx context.Context, shortCo
 	return nil
 }
 
+func (r *InMemoryURLRepository) BatchIncrementClickCounts(ctx context.Context, counts map[string]int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for shortCode, count := range counts {
+		if url, exists := r.urls[shortCode]; exists {
+			url.ClickCount += count
+		}
+	}
+	return nil
+}
+
 func (r *InMemoryURLRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

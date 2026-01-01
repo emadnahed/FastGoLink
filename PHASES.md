@@ -233,22 +233,22 @@ CREATE INDEX idx_urls_expires_at ON urls(expires_at) WHERE expires_at IS NOT NUL
 
 ---
 
-## Phase 8: Click Analytics (Async)
+## Phase 8: Click Analytics (Async) (COMPLETE)
 
 **Goal**: Non-blocking analytics tracking
 
 ### Features
-- [ ] Click count increment
-- [ ] Async processing (goroutine/channel)
-- [ ] Batch updates to reduce DB load
-- [ ] Basic analytics endpoint
+- [x] Click count increment
+- [x] Async processing (goroutine/channel)
+- [x] Batch updates to reduce DB load
+- [x] Basic analytics endpoint (`GET /api/v1/analytics/:code`)
 
-### TDD Approach
-1. Write failing tests for click tracking
-2. Implement async counter
-3. Write failing tests for batch updates
-4. Implement batch processing
-5. Integration tests for accuracy
+### Implementation Details
+- **ClickCounter**: Non-blocking channel-based counter with configurable flush interval and batch size
+- **Batch Updates**: Efficient single SQL UPDATE with CASE statement for multiple URLs
+- **Repository Integration**: `BatchIncrementClickCounts` added to URLRepository interface
+- **Analytics Endpoint**: Returns current click count plus pending (unflushed) clicks
+- **Configuration**: Default 10s flush interval, 100 batch size, 10000 channel buffer
 
 ### Tests Required
 - **Unit**: Counter logic, batch accumulation
