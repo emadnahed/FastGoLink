@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/analytics"
-	"github.com/gourl/gourl/internal/config"
-	"github.com/gourl/gourl/internal/handlers"
-	"github.com/gourl/gourl/internal/idgen"
-	"github.com/gourl/gourl/internal/server"
-	"github.com/gourl/gourl/internal/services"
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/internal/analytics"
+	"github.com/emadnahed/FastGoLink/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/handlers"
+	"github.com/emadnahed/FastGoLink/internal/idgen"
+	"github.com/emadnahed/FastGoLink/internal/server"
+	"github.com/emadnahed/FastGoLink/internal/services"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 func TestE2E_AnalyticsEndpoint(t *testing.T) {

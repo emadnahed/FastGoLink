@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gourl/gourl/internal/database"
-	"github.com/gourl/gourl/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/database"
+	"github.com/emadnahed/FastGoLink/internal/models"
 )
 
 // ShardedURLRepository implements URLRepository with database sharding.

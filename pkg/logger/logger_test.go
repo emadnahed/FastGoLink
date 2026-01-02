@@ -112,14 +112,14 @@ func TestLogger_With(t *testing.T) {
 	var buf bytes.Buffer
 	log := New(&buf, "info")
 
-	childLog := log.With("service", "gourl", "version", "1.0")
+	childLog := log.With("service", "fastgolink", "version", "1.0")
 	childLog.Info("request handled")
 
 	var entry map[string]interface{}
 	err := json.Unmarshal(buf.Bytes(), &entry)
 	require.NoError(t, err)
 
-	assert.Equal(t, "gourl", entry["service"])
+	assert.Equal(t, "fastgolink", entry["service"])
 	assert.Equal(t, "1.0", entry["version"])
 }
 
@@ -207,7 +207,7 @@ func TestLogger_With_CopiesExistingFields(t *testing.T) {
 	log := New(&buf, "info")
 
 	// Create first child with some fields
-	child1 := log.With("service", "gourl")
+	child1 := log.With("service", "fastgolink")
 
 	// Create second child from first child - should copy service field
 	child2 := child1.With("request_id", "abc123")
@@ -218,7 +218,7 @@ func TestLogger_With_CopiesExistingFields(t *testing.T) {
 	require.NoError(t, err)
 
 	// Both fields should be present
-	assert.Equal(t, "gourl", entry["service"])
+	assert.Equal(t, "fastgolink", entry["service"])
 	assert.Equal(t, "abc123", entry["request_id"])
 }
 

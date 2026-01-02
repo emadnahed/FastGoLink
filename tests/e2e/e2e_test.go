@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/config"
-	"github.com/gourl/gourl/internal/handlers"
-	"github.com/gourl/gourl/internal/server"
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/handlers"
+	"github.com/emadnahed/FastGoLink/internal/server"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 // TestSetupVerification verifies the E2E test framework is working.

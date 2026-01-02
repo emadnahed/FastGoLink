@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/idgen"
+	"github.com/emadnahed/FastGoLink/internal/idgen"
 )
 
 // TestIDGenerationAtScale tests ID generation with high volume.

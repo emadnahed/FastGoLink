@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/gourl/gourl/internal/repository"
+	"github.com/emadnahed/FastGoLink/internal/repository"
 )
 
 // URLStats represents click statistics for a URL.

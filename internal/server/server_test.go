@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/config"
-	"github.com/gourl/gourl/internal/handlers"
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/handlers"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 func testConfig() *config.Config {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/gourl/gourl/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/config"
 )
 
 // Common errors

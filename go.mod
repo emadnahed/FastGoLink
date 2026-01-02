@@ -1,4 +1,4 @@
-module github.com/gourl/gourl
+module github.com/emadnahed/FastGoLink
 
 go 1.24.0
 

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gourl/gourl/internal/ratelimit"
+	"github.com/emadnahed/FastGoLink/internal/ratelimit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

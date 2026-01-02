@@ -1,4 +1,4 @@
-# GoURL Configuration (YAML)
+# FastGoLink Configuration (YAML)
 # Copy this file to config.yaml and fill in your values
 
 app:
@@ -15,9 +15,9 @@ server:
 database:
   host: localhost
   port: 5432
-  user: gourl
+  user: fastgolink
   password: your_secure_password_here
-  dbname: gourl
+  dbname: fastgolink
   sslmode: disable
   max_open_conns: 25
   max_idle_conns: 5
