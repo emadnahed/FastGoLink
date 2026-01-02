@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gourl/gourl/internal/ratelimit"
+	"github.com/emadnahed/FastGoLink/internal/ratelimit"
 )
 
 // RateLimitConfig holds configuration for the rate limit middleware.

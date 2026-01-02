@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gourl/gourl/internal/metrics"
+	"github.com/emadnahed/FastGoLink/internal/metrics"
 )
 
 // responseWriter wraps http.ResponseWriter to capture the status code.

@@ -3,7 +3,7 @@ package analytics
 import (
 	"context"
 
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 // ClickRepository defines the interface for persisting click counts.

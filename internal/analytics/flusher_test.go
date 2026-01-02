@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 // mockClickRepository implements ClickRepository for testing.

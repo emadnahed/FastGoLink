@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/cache"
-	"github.com/gourl/gourl/internal/config"
-	"github.com/gourl/gourl/internal/database"
-	"github.com/gourl/gourl/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/cache"
+	"github.com/emadnahed/FastGoLink/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/database"
+	"github.com/emadnahed/FastGoLink/internal/models"
 )
 
 func skipIfNoRedisOrPostgres(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/database"
-	"github.com/gourl/gourl/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/database"
+	"github.com/emadnahed/FastGoLink/internal/models"
 )
 
 func setupShardedTestDB(t *testing.T) (*database.ShardRouter, func()) {

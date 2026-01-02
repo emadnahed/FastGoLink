@@ -1,5 +1,5 @@
-# GoURL Makefile
-# Production-grade URL Shortener in Go
+# FastGoLink Makefile
+# High-performance URL Shortener in Go
 
 .PHONY: all build run clean test test-unit test-integration test-e2e test-coverage lint fmt vet deps docker-up docker-down help
 
@@ -15,7 +15,7 @@ GOFMT=gofmt
 GOVET=$(GOCMD) vet
 
 # Binary name
-BINARY_NAME=gourl
+BINARY_NAME=fastgolink
 BINARY_PATH=bin/$(BINARY_NAME)
 
 # Main package
@@ -173,12 +173,12 @@ docker-test: docker-up ## Run full tests with Docker services
 docker-clean: docker-down ## Clean Docker volumes and containers
 	@echo "Cleaning Docker resources..."
 	docker-compose down -v --remove-orphans
-	docker rmi gourl-api:latest 2>/dev/null || true
+	docker rmi fastgolink-api:latest 2>/dev/null || true
 	@echo "Clean complete"
 
 docker-prod: ## Start production-like environment
 	@echo "Building production image..."
-	docker build -t gourl-api:latest .
+	docker build -t fastgolink-api:latest .
 	@echo "Starting production environment..."
 	docker-compose -f docker-compose.prod.yml up -d
 	@echo "Production environment started"
@@ -199,7 +199,7 @@ dev: docker-up run ## Start development environment
 
 ## Help
 help: ## Display this help message
-	@echo "GoURL - Production-Grade URL Shortener"
+	@echo "FastGoLink - High-Performance URL Shortener"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""

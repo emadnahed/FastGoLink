@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gourl/gourl/internal/idgen"
-	"github.com/gourl/gourl/internal/models"
-	"github.com/gourl/gourl/internal/repository"
-	"github.com/gourl/gourl/internal/security"
+	"github.com/emadnahed/FastGoLink/internal/idgen"
+	"github.com/emadnahed/FastGoLink/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/repository"
+	"github.com/emadnahed/FastGoLink/internal/security"
 )
 
 // Security-related errors for URL validation.

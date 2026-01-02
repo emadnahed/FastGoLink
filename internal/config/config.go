@@ -157,9 +157,9 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid DB_PORT: %w", err)
 	}
 	cfg.Database.Port = dbPort
-	cfg.Database.User = getEnvOrDefault("DB_USER", "gourl")
+	cfg.Database.User = getEnvOrDefault("DB_USER", "fastgolink")
 	cfg.Database.Password = getEnvOrDefault("DB_PASSWORD", "")
-	cfg.Database.DBName = getEnvOrDefault("DB_NAME", "gourl")
+	cfg.Database.DBName = getEnvOrDefault("DB_NAME", "fastgolink")
 	cfg.Database.SSLMode = getEnvOrDefault("DB_SSLMODE", "disable")
 
 	maxOpenConns, err := getEnvAsInt("DB_MAX_OPEN_CONNS", 25)

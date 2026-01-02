@@ -1,4 +1,4 @@
-// Package main is the entry point for the GoURL API server.
+// Package main is the entry point for the FastGoLink API server.
 package main
 
 import (
@@ -8,17 +8,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gourl/gourl/internal/analytics"
-	"github.com/gourl/gourl/internal/cache"
-	"github.com/gourl/gourl/internal/config"
-	"github.com/gourl/gourl/internal/database"
-	"github.com/gourl/gourl/internal/handlers"
-	"github.com/gourl/gourl/internal/idgen"
-	"github.com/gourl/gourl/internal/repository"
-	"github.com/gourl/gourl/internal/security"
-	"github.com/gourl/gourl/internal/server"
-	"github.com/gourl/gourl/internal/services"
-	"github.com/gourl/gourl/pkg/logger"
+	"github.com/emadnahed/FastGoLink/internal/analytics"
+	"github.com/emadnahed/FastGoLink/internal/cache"
+	"github.com/emadnahed/FastGoLink/internal/config"
+	"github.com/emadnahed/FastGoLink/internal/database"
+	"github.com/emadnahed/FastGoLink/internal/handlers"
+	"github.com/emadnahed/FastGoLink/internal/idgen"
+	"github.com/emadnahed/FastGoLink/internal/repository"
+	"github.com/emadnahed/FastGoLink/internal/security"
+	"github.com/emadnahed/FastGoLink/internal/server"
+	"github.com/emadnahed/FastGoLink/internal/services"
+	"github.com/emadnahed/FastGoLink/pkg/logger"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func run() error {
 
 	// Create logger
 	log := logger.New(os.Stdout, cfg.App.LogLevel)
-	log = log.With("service", "gourl", "env", cfg.App.Env)
+	log = log.With("service", "fastgolink", "env", cfg.App.Env)
 
 	log.Info("starting server",
 		"host", cfg.Server.Host,

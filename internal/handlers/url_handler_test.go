@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/idgen"
-	"github.com/gourl/gourl/internal/models"
-	"github.com/gourl/gourl/internal/services"
+	"github.com/emadnahed/FastGoLink/internal/idgen"
+	"github.com/emadnahed/FastGoLink/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/services"
 )
 
 // MockURLService is a mock implementation of services.URLService.

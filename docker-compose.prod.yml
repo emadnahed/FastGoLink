@@ -1,7 +1,7 @@
 services:
   api:
-    image: gourl-api:latest
-    container_name: gourl-api
+    image: fastgolink-api:latest
+    container_name: fastgolink-api
     ports:
       - "8080:8080"
     environment:
@@ -42,7 +42,7 @@ services:
         window: 120s
     # Health check defined in Dockerfile
     networks:
-      - gourl-network
+      - fastgolink-network
     logging:
       driver: json-file
       options:
@@ -50,5 +50,5 @@ services:
         max-file: "3"
 
 networks:
-  gourl-network:
+  fastgolink-network:
     driver: bridge

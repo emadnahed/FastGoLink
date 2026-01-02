@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/gourl/gourl/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/models"
 )
 
 // Note: MockURLRepository is defined in url_service_test.go

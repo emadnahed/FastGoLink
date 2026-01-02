@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gourl/gourl/internal/services"
+	"github.com/emadnahed/FastGoLink/internal/services"
 )
 
 // mockAnalyticsService implements services.AnalyticsService for testing.

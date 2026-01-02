@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gourl/gourl/internal/idgen"
-	"github.com/gourl/gourl/internal/models"
-	"github.com/gourl/gourl/internal/services"
+	"github.com/emadnahed/FastGoLink/internal/idgen"
+	"github.com/emadnahed/FastGoLink/internal/models"
+	"github.com/emadnahed/FastGoLink/internal/services"
 )
 
 // ShortenRequest represents the request body for creating a short URL.
