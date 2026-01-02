@@ -191,9 +191,9 @@ Configuration is loaded from environment variables with sensible defaults:
 |----------|---------|-------------|
 | `DB_HOST` | `localhost` | PostgreSQL hostname |
 | `DB_PORT` | `5432` | PostgreSQL port |
-| `DB_USER` | `gourl` | Database user |
+| `DB_USER` | `fastgolink` | Database user |
 | `DB_PASSWORD` | - | Database password |
-| `DB_NAME` | `gourl` | Database name |
+| `DB_NAME` | `fastgolink` | Database name |
 | `DB_SSLMODE` | `disable` | SSL mode |
 | `DB_MAX_OPEN_CONNS` | `25` | Max open connections |
 | `DB_MAX_IDLE_CONNS` | `5` | Max idle connections |

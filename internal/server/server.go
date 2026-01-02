@@ -101,11 +101,12 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /metrics", metrics.Handler())
 
 	// API Documentation routes (Scalar, ReDoc, Swagger UI)
-	mux.HandleFunc("GET /docs", s.docsHandler.ScalarUI)
-	mux.HandleFunc("GET /docs/", s.docsHandler.ScalarUI)
+	// Register specific routes first, then general prefix-based routes
 	mux.HandleFunc("GET /docs/openapi.yaml", s.docsHandler.OpenAPISpec)
 	mux.HandleFunc("GET /docs/redoc", s.docsHandler.Redoc)
 	mux.HandleFunc("GET /docs/swagger", s.docsHandler.SwaggerUI)
+	mux.HandleFunc("GET /docs/", s.docsHandler.ScalarUI) // Default to Scalar UI for other /docs/* paths
+	mux.HandleFunc("GET /docs", s.docsHandler.ScalarUI)
 
 	// API v1 routes - URL shortening
 	mux.HandleFunc("POST /api/v1/shorten", s.handleShorten)
